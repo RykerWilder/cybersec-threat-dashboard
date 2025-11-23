@@ -17,14 +17,14 @@ function App() {
   const renderComponent = (item) => {
     switch(item.component) {
       case 'attacks':
-        return <AttacksTypes key={item.id} />;
+        return <AttacksTypes />;
       case 'malware':
-        return <Malware key={item.id} />;
+        return <Malware />;
       case 'threats':
-        return <Threats key={item.id} />;
+        return <Threats />;
       case 'chart3':
         return (
-          <div key={item.id} className="border border-stone-500 rounded-lg p-4 bg-slate-700 mb-5">
+          <div className="border border-stone-500 rounded-lg p-4 bg-slate-700">
             <canvas className="h-96"></canvas>
           </div>
         );
@@ -36,22 +36,22 @@ function App() {
   return (
     <div className="bg-slate-800 min-h-screen">
       <Header />
-      <ReactSortable
-        list={items}
-        setList={setItems}
-        animation={150}
-        ghostClass="sortable-ghost"
-        dragClass="sortable-drag"
-        forceFallback={true} 
-        className="p-10 columns-1 md:columns-2 gap-5 max-w-[1300px] w-full mx-auto"
-        style={{ position: 'relative' }}
-      >
-        {items.map((item) => (
-          <div key={item.id} className="mb-5">
-            {renderComponent(item)}
-          </div>
-        ))}
-      </ReactSortable>
+      <div className="p-10 max-w-[1300px] w-full mx-auto">
+        <ReactSortable
+          list={items}
+          setList={setItems}
+          animation={150}
+          ghostClass="opacity-50"
+          dragClass="cursor-grabbing"
+          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+        >
+          {items.map((item) => (
+            <div key={item.id} className="cursor-grab active:cursor-grabbing">
+              {renderComponent(item)}
+            </div>
+          ))}
+        </ReactSortable>
+      </div>
     </div>
   );
 }
