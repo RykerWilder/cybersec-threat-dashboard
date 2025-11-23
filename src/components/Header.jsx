@@ -1,8 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const Header = () => {
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toTimeString().split(' ')[0]
+  );
+
+  useEffect(() => {
+    // Aggiorna l'orologio ogni secondo
+    const interval = setInterval(() => {
+      setCurrentTime(new Date().toTimeString().split(' ')[0]);
+    }, 1000);
+
+    // Cleanup: ferma l'intervallo quando il componente viene smontato
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <header className="p-10 max-w-1300 w-full">
+    <header className="p-10 max-w-[1300px] w-full mx-auto">
       <div>
         <div className="flex items-center gap-1">
           <svg
@@ -24,13 +38,15 @@ const Header = () => {
         </div>
       </div>
       <div className="flex gap-1 justify-between items-center border border-stone-500 rounded-lg p-2 bg-slate-700 mt-5">
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center text-white">
           <span className="rounded-full h-3 w-3 bg-green-500"></span>
           <span className="font-bold">System Status: </span>
           <span>Active</span>
         </div>
         <div>
-          <span className="font-bold text-3xl"></span>
+          <span className="font-bold text-3xl text-white" id="clock">
+            {currentTime}
+          </span>
         </div>
       </div>
     </header>
