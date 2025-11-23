@@ -19,12 +19,12 @@ function App() {
       case 'attacks':
         return <AttacksTypes key={item.id} />;
       case 'malware':
-          return <Malware key={item.id} />;
+        return <Malware key={item.id} />;
       case 'threats':
-          return <Threats key={item.id} />;
+        return <Threats key={item.id} />;
       case 'chart3':
         return (
-          <div key={item.id} className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
+          <div key={item.id} className="border border-stone-500 rounded-lg p-4 bg-slate-700 mb-5">
             <canvas className="h-96"></canvas>
           </div>
         );
@@ -37,14 +37,20 @@ function App() {
     <div className="bg-slate-800 min-h-screen">
       <Header />
       <ReactSortable
-        tag="main"
         list={items}
         setList={setItems}
         animation={150}
         ghostClass="sortable-ghost"
-        className="p-10 columns-1 md:columns-2 gap-5 space-y-5 max-w-[1300px] w-full mx-auto"
+        dragClass="sortable-drag"
+        forceFallback={true} 
+        className="p-10 columns-1 md:columns-2 gap-5 max-w-[1300px] w-full mx-auto"
+        style={{ position: 'relative' }}
       >
-        {items.map((item) => renderComponent(item))}
+        {items.map((item) => (
+          <div key={item.id} className="mb-5">
+            {renderComponent(item)}
+          </div>
+        ))}
       </ReactSortable>
     </div>
   );

@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+.sortable-ghost {
+  opacity: 0.4;
+}
+
+.sortable-drag {
+  z-index: 9999;
+  transform: rotate(-1deg);
+}
+
+.break-inside-avoid {
+  break-inside: avoid;
+}
