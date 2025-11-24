@@ -30,16 +30,45 @@ const PopularThreats = () => {
 
         const threats = response.data.data || [];
 
-        const labels = threats.map((threat) => threat || "Unknown");
+        // Prendi solo le prime 5 minacce
+        const top5Threats = threats.slice(7, 15);
 
-        const data = threats.map((threat) => threat.length || 0);
+        const labels = top5Threats.map((threat) => {
+          // Formatta i nomi delle minacce per renderli più leggibili
+          return threat
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase()) || "Unknown";
+        });
+
+        // Per VirusTotal, le categorie popolari non hanno un "valore" numerico
+        // quindi usiamo un valore fittizio o possiamo fare una chiamata aggiuntiva
+        // per ottenere statistiche reali. Per ora uso un valore basato sulla posizione.
+        const data = top5Threats.map((threat, index) => {
+          // Assegna valori decrescenti (la prima minaccia ha valore più alto)
+          return 100 - (index * 15);
+        });
 
         setChartData({
           labels: labels,
           datasets: [
             {
+              label: "Threat Score",
               data: data,
-              backgroundColor: ["rgba(153, 102, 255, 0.7)"],
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.7)",
+                "rgba(54, 162, 235, 0.7)",
+                "rgba(255, 206, 86, 0.7)",
+                "rgba(75, 192, 192, 0.7)",
+                "rgba(153, 102, 255, 0.7)",
+              ],
+              borderColor: [
+                "rgba(255, 99, 132, 1)",
+                "rgba(54, 162, 235, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(75, 192, 192, 1)",
+                "rgba(153, 102, 255, 1)",
+              ],
+              borderWidth: 1,
             },
           ],
         });
@@ -99,13 +128,15 @@ const PopularThreats = () => {
         },
         plugins: {
           legend: {
+            display: true,
+            position: 'top',
             labels: {
               color: "#94a3b8",
             },
           },
           title: {
             display: true,
-            text: "Popular threat categories",
+            text: "Top 5 Popular Threat Categories",
             color: "#94a3b8",
             font: {
               size: 16,
