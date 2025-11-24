@@ -1,11 +1,65 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as Chart from 'chart.js';
+import axios from 'axios';
 
 const AttacksTypes = () => {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const VIRUSTOTAL_API_KEY =  import.meta.env.VITE_VIRUSTOTAL_API_KEY;
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Query VirusTotal
+        const response = await axios.get(
+          'https://www.virustotal.com/api/v3/popular_threat_categories',
+          {
+            headers: {
+              accept: 'application/json',
+              'x-apikey': VIRUSTOTAL_API_KEY
+            }
+          }
+        );
+
+        console.log('Dati API:', response.data);
+
+        // Estrai i dati dall'API
+        const threats = response.data.data || [];
+        
+        const labels = threats.map(threat => threat || 'Unknown');
+        
+        const data = threats.map(threat => threat.length || 0);
+        console.log(data);
+
+        setChartData({
+          labels: labels,
+          datasets: [{
+            label: 'Popular threat categories',
+            data: data,
+            backgroundColor: [
+              'rgba(153, 102, 255, 0.7)'
+            ]
+          }]
+        });
+      } catch (err) {
+        console.error('Errore nel fetch dei dati:', err);
+        setError(err.message || 'Error downloading data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!chartData || loading) return;
 
     Chart.Chart.register(
       Chart.CategoryScale,
@@ -17,38 +71,16 @@ const AttacksTypes = () => {
       Chart.Legend
     );
 
+    // Distruggi il chart esistente
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
-
+    // Crea il nuovo chart
     const ctx = chartRef.current.getContext('2d');
     chartInstanceRef.current = new Chart.Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-          label: 'Bar Chart',
-          data: [12, 19, 3, 5, 2, 3],
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.7)',
-            'rgba(54, 162, 235, 0.7)',
-            'rgba(255, 206, 86, 0.7)',
-            'rgba(75, 192, 192, 0.7)',
-            'rgba(153, 102, 255, 0.7)',
-            'rgba(255, 159, 64, 0.7)'
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)'
-          ],
-          borderWidth: 1
-        }]
-      },
+      data: chartData,
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -86,7 +118,23 @@ const AttacksTypes = () => {
         chartInstanceRef.current.destroy();
       }
     };
-  }, []);
+  }, [chartData, loading]);
+
+  if (loading) {
+    return (
+      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 flex items-center justify-center">
+        <div className="text-slate-300">Loading data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
+        <div className="text-red-400">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
