@@ -26,8 +26,6 @@ const PopularThreats = () => {
           }
         );
 
-        console.log("Dati API:", response.data);
-
         const threats = response.data.data || [];
 
         // Prendi solo le prime 5 minacce
