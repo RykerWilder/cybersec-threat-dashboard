@@ -16,7 +16,6 @@ const PopularThreats = () => {
       try {
         setLoading(true);
 
-        // Query VirusTotal
         const response = await axios.get(
           "https://www.virustotal.com/api/v3/popular_threat_categories",
           {
@@ -29,7 +28,6 @@ const PopularThreats = () => {
 
         console.log("Dati API:", response.data);
 
-        // Estrai i dati dall'API
         const threats = response.data.data || [];
 
         const labels = threats.map((threat) => threat || "Unknown");
@@ -69,12 +67,10 @@ const PopularThreats = () => {
       Chart.Legend
     );
 
-    // Distruggi il chart esistente
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
-    // Crea il nuovo chart
     const ctx = chartRef.current.getContext("2d");
     chartInstanceRef.current = new Chart.Chart(ctx, {
       type: "bar",
