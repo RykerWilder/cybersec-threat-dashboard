@@ -52,23 +52,16 @@ const PopularThreats = () => {
           labels: labels,
           datasets: [
             {
-              label: "Threat Score",
+              borderWidth: 2,
+              borderRadius: 4,
+              borderSkipped: false,
               data: data,
               backgroundColor: [
-                "rgba(255, 99, 132, 0.7)",
-                "rgba(54, 162, 235, 0.7)",
-                "rgba(255, 206, 86, 0.7)",
-                "rgba(75, 192, 192, 0.7)",
-                "rgba(153, 102, 255, 0.7)",
+                "rgba(153, 102, 255, 0.7)"
               ],
               borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(75, 192, 192, 1)",
-                "rgba(153, 102, 255, 1)",
-              ],
-              borderWidth: 1,
+                "rgba(153, 102, 255, 1)"
+              ]
             },
           ],
         });
@@ -110,39 +103,62 @@ const PopularThreats = () => {
         scales: {
           y: {
             beginAtZero: true,
+            max: 100,
             ticks: {
               color: "#94a3b8",
+              precision: 1
             },
             grid: {
               color: "rgba(148, 163, 184, 0.1)",
             },
+            title: {
+              display: true,
+              text: 'Threats Score',
+              color: '#94a3b8',
+              font: {
+                size: 13,
+                weight: 'bold'
+              },
+            }
           },
           x: {
             ticks: {
               color: "#94a3b8",
+              maxRotation: 90,
+              minRotation: 90,
             },
             grid: {
-              color: "rgba(148, 163, 184, 0.1)",
+              display:true
             },
+            title: {
+              display: true,
+              text: 'Threats',
+              color: '#94a3b8',
+              font: {
+                size: 13,
+                weight: 'bold'
+              },
+            }
           },
         },
         plugins: {
           legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: "#94a3b8",
-            },
+            display: false,
           },
           title: {
             display: true,
-            text: "Top 5 Popular Threat Categories",
+            text: "Top Popular Threat Categories",
             color: "#94a3b8",
             font: {
-              size: 16,
+              size: 20,
+              weight: 'bold'
             },
           },
         },
+        animation: {
+          duration: 1000,
+          easing: 'easeInOutQuart'
+        }
       },
     });
 
@@ -164,14 +180,19 @@ const PopularThreats = () => {
   if (error) {
     return (
       <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
-        <div className="text-red-400">Error: {error}</div>
+        <div className="text-red-400 text-center">
+          <div className="font-semibold mb-2">Error Loading Data</div>
+          <div className="text-sm">{error}</div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
-      <canvas ref={chartRef} className="h-64"></canvas>
+      <div className="relative h-100">
+        <canvas ref={chartRef} className="h-64"></canvas>
+      </div>
     </div>
   );
 };
