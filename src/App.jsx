@@ -7,13 +7,15 @@ import NVDVulnerabilitySeverity from './components/NVDVulnerabilitySeverity';
 import Threats from './components/Threats';
 import Trends from './components/Trends';
 import Footer from './components/Footer';
+import ThreatsList from './components/ThreatsList';
 
 function App() {
   const [items, setItems] = useState([
     { id: 1, component: 'PopularThreats' },
     { id: 2, component: 'NVDVulnerabilitySeverity' },
     { id: 3, component: 'threats' },
-    { id: 4, component: 'trends' }
+    { id: 4, component: 'ThreatsList'},
+    { id: 5, component: 'trends' }
   ]);
 
   const renderComponent = (item) => {
@@ -22,6 +24,8 @@ function App() {
         return <PopularThreats />;
       case 'NVDVulnerabilitySeverity':
         return <NVDVulnerabilitySeverity />;
+      case 'ThreatsList':
+        return <ThreatsList/>
       case 'threats':
         return <Threats />;
       case 'trends':
