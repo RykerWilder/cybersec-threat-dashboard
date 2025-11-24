@@ -35,7 +35,6 @@ const AttacksTypes = () => {
         const labels = threats.map(threat => threat || 'Unknown');
         
         const data = threats.map(threat => threat.length || 0);
-        console.log(data);
 
         setChartData({
           labels: labels,
