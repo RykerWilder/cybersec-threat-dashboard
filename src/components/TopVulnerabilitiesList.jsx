@@ -71,7 +71,7 @@ const TopVulnerabilitiesList = () => {
   return (
     <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 ">
       <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
-        NVD Top Vulnerabilities List (Last 7 Days)
+        NVD Latest Vulnerabilities Explanation
       </h3>
       <div className="space-y-3 max-h-90 overflow-y-auto relative">
         {vulnerabilities.length === 0 ? (
