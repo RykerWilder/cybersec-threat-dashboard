@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as Chart from 'chart.js';
-import axios from 'axios';
+import * as Chart from "chart.js";
+import axios from "axios";
 
 const AttacksTypes = () => {
   const chartRef = useRef(null);
@@ -9,7 +9,7 @@ const AttacksTypes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const VIRUSTOTAL_API_KEY =  import.meta.env.VITE_VIRUSTOTAL_API_KEY;
+  const VIRUSTOTAL_API_KEY = import.meta.env.VITE_VIRUSTOTAL_API_KEY;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,37 +18,36 @@ const AttacksTypes = () => {
 
         // Query VirusTotal
         const response = await axios.get(
-          'https://www.virustotal.com/api/v3/popular_threat_categories',
+          "https://www.virustotal.com/api/v3/popular_threat_categories",
           {
             headers: {
-              accept: 'application/json',
-              'x-apikey': VIRUSTOTAL_API_KEY
-            }
+              accept: "application/json",
+              "x-apikey": VIRUSTOTAL_API_KEY,
+            },
           }
         );
 
-        console.log('Dati API:', response.data);
+        console.log("Dati API:", response.data);
 
         // Estrai i dati dall'API
         const threats = response.data.data || [];
-        
-        const labels = threats.map(threat => threat || 'Unknown');
-        
-        const data = threats.map(threat => threat.length || 0);
+
+        const labels = threats.map((threat) => threat || "Unknown");
+
+        const data = threats.map((threat) => threat.length || 0);
 
         setChartData({
           labels: labels,
-          datasets: [{
-            label: 'Popular threat categories',
-            data: data,
-            backgroundColor: [
-              'rgba(153, 102, 255, 0.7)'
-            ]
-          }]
+          datasets: [
+            {
+              data: data,
+              backgroundColor: ["rgba(153, 102, 255, 0.7)"],
+            },
+          ],
         });
       } catch (err) {
-        console.error('Errore nel fetch dei dati:', err);
-        setError(err.message || 'Error downloading data');
+        console.error("Errore nel fetch dei dati:", err);
+        setError(err.message || "Error downloading data");
       } finally {
         setLoading(false);
       }
@@ -76,9 +75,9 @@ const AttacksTypes = () => {
     }
 
     // Crea il nuovo chart
-    const ctx = chartRef.current.getContext('2d');
+    const ctx = chartRef.current.getContext("2d");
     chartInstanceRef.current = new Chart.Chart(ctx, {
-      type: 'bar',
+      type: "bar",
       data: chartData,
       options: {
         responsive: true,
@@ -87,29 +86,37 @@ const AttacksTypes = () => {
           y: {
             beginAtZero: true,
             ticks: {
-              color: '#94a3b8'
+              color: "#94a3b8",
             },
             grid: {
-              color: 'rgba(148, 163, 184, 0.1)'
-            }
+              color: "rgba(148, 163, 184, 0.1)",
+            },
           },
           x: {
             ticks: {
-              color: '#94a3b8'
+              color: "#94a3b8",
             },
             grid: {
-              color: 'rgba(148, 163, 184, 0.1)'
-            }
-          }
+              color: "rgba(148, 163, 184, 0.1)",
+            },
+          },
         },
         plugins: {
           legend: {
             labels: {
-              color: '#94a3b8'
-            }
-          }
-        }
-      }
+              color: "#94a3b8",
+            },
+          },
+          title: {
+            display: true,
+            text: "Popular threat categories",
+            color: "#94a3b8",
+            font: {
+              size: 16,
+            },
+          },
+        },
+      },
     });
 
     return () => {
