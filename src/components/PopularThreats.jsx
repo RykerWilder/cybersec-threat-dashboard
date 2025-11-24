@@ -147,7 +147,7 @@ const PopularThreats = () => {
           },
           title: {
             display: true,
-            text: "Top Popular Threat Categories",
+            text: "Popular Threat Categories",
             color: "#94a3b8",
             font: {
               size: 20,
