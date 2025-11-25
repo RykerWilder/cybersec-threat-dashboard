@@ -2,16 +2,18 @@ import './App.css';
 import { useState } from 'react';
 import { ReactSortable } from "react-sortablejs";
 import Header from './components/Header';
+import Footer from './components/Footer';
 import PopularThreats from './components/PopularThreats';
 import NVDVulnerabilitySeverity from './components/NVDVulnerabilitySeverity';
-import Footer from './components/Footer';
 import TopVulnerabilitiesList from './components/TopVulnerabilitiesList';
+import CyberThreatMap from './components/ThreatMap';
 
 function App() {
   const [items, setItems] = useState([
     { id: 1, component: 'PopularThreats' },
     { id: 2, component: 'NVDVulnerabilitySeverity' },
-    { id: 3, component: 'TopVulnerabilitiesList'}
+    { id: 3, component: 'TopVulnerabilitiesList'},
+    { id: 4, component: 'CyberThreatMap'}
   ]);
 
   const renderComponent = (item) => {
@@ -22,6 +24,8 @@ function App() {
         return <NVDVulnerabilitySeverity />;
       case 'TopVulnerabilitiesList':
         return <TopVulnerabilitiesList/>
+      case 'CyberThreatMap':
+        return <CyberThreatMap/>
       default:
         return null;
     }
