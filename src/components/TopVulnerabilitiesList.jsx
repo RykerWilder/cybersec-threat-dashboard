@@ -35,7 +35,6 @@ const TopVulnerabilitiesList = () => {
         );
 
         const vulnerabilitiesData = response.data.vulnerabilities || [];
-        console.log(vulnerabilitiesData);
         
         setVulnerabilities(vulnerabilitiesData);
       } catch (err) {
