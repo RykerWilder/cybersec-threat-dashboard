@@ -25,7 +25,7 @@ const TopVulnerabilitiesList = () => {
             params: {
               resultsPerPage: 10,
               pubStartDate: pubStartDate,
-              pubEndDate: pubEndDate
+              pubEndDate: pubEndDate,
             },
             headers: {
               accept: "application/json",
@@ -34,7 +34,7 @@ const TopVulnerabilitiesList = () => {
         );
 
         const vulnerabilitiesData = response.data.vulnerabilities || [];
-        
+
         setVulnerabilities(vulnerabilitiesData);
       } catch (err) {
         console.error("Errore nel fetch dei dati:", err);
@@ -69,11 +69,11 @@ const TopVulnerabilitiesList = () => {
   }
 
   return (
-    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
+    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-[400px] flex flex-col">
       <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
         NVD Latest Vulnerabilities Explanation
       </h3>
-      <div className="space-y-3 h-full overflow-y-auto">
+      <div className="space-y-3 flex-1 overflow-y-auto">
         {vulnerabilities.length === 0 ? (
           <div className="text-slate-400 text-center py-4">
             No vulnerabilities found in the last 7 days
@@ -89,8 +89,13 @@ const TopVulnerabilitiesList = () => {
                   <div className="w-3 h-3 rounded-full bg-violet-400 mt-1.5"></div>
                   <div className="flex-1">
                     {/* Title CVE */}
-                    <a href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cve.id}`} className="
-                    underline text-sm text-slate-200 font-semibold" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cve.id}`}
+                      className="
+                    underline text-sm text-slate-200 font-semibold"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {vulnerability.cve.id}
                     </a>
                     {/* Description */}

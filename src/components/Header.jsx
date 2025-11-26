@@ -14,7 +14,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="p-10 max-w-[1300px] w-full mx-auto">
+    <header className="p-10 max-w-[1500px] w-full mx-auto">
       <div>
         <div className="flex items-center gap-1">
           <svg

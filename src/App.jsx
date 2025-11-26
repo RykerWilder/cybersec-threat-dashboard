@@ -34,7 +34,7 @@ function App() {
   return (
     <div className="bg-slate-800 min-h-screen">
       <Header />
-      <div className="px-10 max-w-[1300px] w-full mx-auto">
+      <div className="px-10 max-w-[1500px] w-full mx-auto">
         <ReactSortable
           list={items}
           setList={setItems}
