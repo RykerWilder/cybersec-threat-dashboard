@@ -12,8 +12,8 @@ function App() {
   const [items, setItems] = useState([
     { id: 1, component: 'PopularThreats' },
     { id: 2, component: 'NVDVulnerabilitySeverity' },
-    { id: 3, component: 'TopVulnerabilitiesList'},
-    { id: 4, component: 'CyberThreatMap'}
+    { id: 3, component: 'CyberThreatMap'},
+    { id: 4, component: 'TopVulnerabilitiesList'}
   ]);
 
   const renderComponent = (item) => {
