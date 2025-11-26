@@ -12,7 +12,6 @@ const TopVulnerabilitiesList = () => {
         setLoading(true);
         setError(null);
 
-        // Calcola le date per gli ultimi 7 giorni
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 7);
@@ -89,17 +88,17 @@ const TopVulnerabilitiesList = () => {
                 <div className="flex items-start space-x-3 flex-1">
                   <div className="w-3 h-3 rounded-full bg-violet-400 mt-1.5"></div>
                   <div className="flex-1">
-                    {/* Titolo CVE */}
+                    {/* Title CVE */}
                     <a href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cve.id}`} className="
                     underline text-sm text-slate-200 font-semibold" target="_blank" rel="noopener noreferrer">
                       {vulnerability.cve.id}
                     </a>
-                    {/* Descrizione */}
+                    {/* Description */}
                     <div className="text-xs text-slate-400 mt-2 line-clamp-3">
                       {vulnerability.cve.descriptions?.[0]?.value ||
                         "No description available"}
                     </div>
-                    {/* Metadata aggiuntivo */}
+                    {/* Metadata */}
                     <div className="flex items-center space-x-4 mt-2 text-xs text-slate-500">
                       <span>
                         Published:{" "}

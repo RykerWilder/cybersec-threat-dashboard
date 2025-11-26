@@ -6,12 +6,10 @@ const Header = () => {
   );
 
   useEffect(() => {
-    // Aggiorna l'orologio ogni secondo
     const interval = setInterval(() => {
       setCurrentTime(new Date().toTimeString().split(" ")[0]);
     }, 1000);
 
-    // Cleanup: ferma l'intervallo quando il componente viene smontato
     return () => clearInterval(interval);
   }, []);
 
