@@ -19,6 +19,8 @@ const ThreatMap = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const ABUSEIPDB_API_KEY = import.meta.env.VITE_ABUSEIPDB_API_KEY;
+
   const fetchThreatData = async () => {
     try {
       const response = await fetch('https://threatfeeds.io/api/v1/latest');
@@ -42,56 +44,7 @@ const ThreatMap = () => {
       setThreats(formattedThreats);
     } catch (err) {
       console.error('Error:', err);
-      fetchAlternative();
     }
-  };
-
-  const fetchAlternative = async () => {
-    try {
-      const response = await fetch('https://reputation.alienvault.com/reputation.generic');
-      const text = await response.text();
-      const lines = text.split('\n').filter(line => line && !line.startsWith('#'));
-      
-      const formatted = lines.slice(0, 100).map((line, index) => {
-        const parts = line.split('#');
-        const ip = parts[0].trim();
-        const lat = (Math.random() * 180) - 90;
-        const lng = (Math.random() * 360) - 180;
-        const severity = Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low';
-        
-        return {
-          id: `av-${index}`,
-          lat,
-          lng,
-          type: 'malicious_ip',
-          severity,
-          sourceIp: ip,
-          timestamp: new Date().toISOString()
-        };
-      });
-      
-      setThreats(formatted);
-    } catch (err) {
-      console.error('Alternative failed:', err);
-      generateFallback();
-    }
-  };
-
-  const generateFallback = () => {
-    const types = ['malware', 'ransomware', 'phishing', 'ddos', 'brute_force'];
-    const severities = ['high', 'medium', 'low'];
-    
-    const fallback = Array.from({ length: 50 }, (_, i) => ({
-      id: `fallback-${i}`,
-      lat: (Math.random() * 180) - 90,
-      lng: (Math.random() * 360) - 180,
-      type: types[Math.floor(Math.random() * types.length)],
-      severity: severities[Math.floor(Math.random() * severities.length)],
-      sourceIp: `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-      timestamp: new Date(Date.now() - Math.random() * 3600000).toISOString()
-    }));
-    
-    setThreats(fallback);
   };
 
   const getColorBySeverity = (severity) => {
@@ -114,7 +67,7 @@ const ThreatMap = () => {
       </h3>
       <MapContainer
         center={[20, 0]}
-        zoom={0.5}
+        zoom={2}
         style={{ height: "400px", width: "100%" }}
       >
         <TileLayer
