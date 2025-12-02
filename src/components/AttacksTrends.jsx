@@ -23,15 +23,12 @@ const AttacksTrend = () => {
         const data = await response.json();
         console.log("Response data:", data);
 
-        // Estrai i dati dal response
         const dailyData = data.dailysummary || [];
         
-        // Ordina i dati per data
         const sortedData = dailyData.sort((a, b) => 
           new Date(a.date) - new Date(b.date)
         );
 
-        // Prepara labels (date) e datasets
         const labels = sortedData.map(item => item.date);
         const packetsData = sortedData.map(item => parseInt(item.packets) || 0);
         const targetsData = sortedData.map(item => parseInt(item.targets) || 0);
