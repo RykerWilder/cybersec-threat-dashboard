@@ -37,7 +37,7 @@ const TopVulnerabilitiesList = () => {
 
         setVulnerabilities(vulnerabilitiesData);
       } catch (err) {
-        console.error("Errore nel fetch dei dati:", err);
+        console.error("Data fetch error:", err);
         setError(err.message || "Error downloading data");
       } finally {
         setLoading(false);

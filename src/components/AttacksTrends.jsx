@@ -17,7 +17,7 @@ const AttacksTrend = () => {
         );
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error status: ${response.status}`);
         }
         
         const data = await response.json();
@@ -82,7 +82,7 @@ const AttacksTrend = () => {
           ],
         });
       } catch (err) {
-        console.error("Errore nel fetch dei dati:", err);
+        console.error("Data fetch error:", err);
         setError(err.message || "Error downloading data");
       } finally {
         setLoading(false);
@@ -132,7 +132,7 @@ const AttacksTrend = () => {
           },
           title: {
             display: true,
-            text: "Attacks Trend - Daily Summary",
+            text: "Attacks Trend",
             color: "#94a3b8",
             font: {
               size: 20,
