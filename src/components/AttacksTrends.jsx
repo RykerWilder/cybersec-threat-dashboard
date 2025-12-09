@@ -22,8 +22,6 @@ const AttacksTrend = () => {
         
         const data = await response.json();
         console.log("Response data:", data);
-        console.log("Type of data:", typeof data);
-        console.log("Is array:", Array.isArray(data));
 
         let dailyData = [];
         if (Array.isArray(data)) {
@@ -31,9 +29,6 @@ const AttacksTrend = () => {
         } else if (data.dailysummary && Array.isArray(data.dailysummary)) {
           dailyData = data.dailysummary;
         }
-        
-        console.log("Daily data length:", dailyData.length);
-        console.log("First item:", dailyData[0]);
 
         const sortedData = dailyData.sort((a, b) => 
           new Date(a.date) - new Date(b.date)
@@ -45,39 +40,39 @@ const AttacksTrend = () => {
         const sourcesData = sortedData.map(item => parseInt(item.sources) || 0);
         
         console.log("Labels:", labels);
-        console.log("Records data:", recordsData);
-        console.log("Targets data:", targetsData);
-        console.log("Sources data:", sourcesData);
 
         setChartData({
           labels: labels,
           datasets: [
             {
-              label: "Records",
+              label: "Number of attacks",
               data: recordsData,
               borderColor: "#3b82f6",
               backgroundColor: "rgba(59, 130, 246, 0.1)",
               borderWidth: 2,
               tension: 0.4,
               fill: true,
+              yAxisID: 'y',
             },
             {
-              label: "Targets",
+              label: "Number of targets",
               data: targetsData,
               borderColor: "#ef4444",
               backgroundColor: "rgba(239, 68, 68, 0.1)",
               borderWidth: 2,
               tension: 0.4,
               fill: true,
+              yAxisID: 'y1',
             },
             {
-              label: "Sources",
+              label: "Number of attackers",
               data: sourcesData,
               borderColor: "#22c55e",
               backgroundColor: "rgba(34, 197, 94, 0.1)",
               borderWidth: 2,
               tension: 0.4,
               fill: true,
+              yAxisID: 'y1',
             },
           ],
         });
@@ -132,7 +127,7 @@ const AttacksTrend = () => {
           },
           title: {
             display: true,
-            text: "Attacks Trend",
+            text: "Attacks Trend - Last 30 days",
             color: "#94a3b8",
             font: {
               size: 20,
@@ -156,27 +151,56 @@ const AttacksTrend = () => {
           x: {
             ticks: {
               color: "#94a3b8",
-              maxRotation: 45,
-              minRotation: 45,
+              maxRotation: 90,
+              minRotation: 90,
             },
             grid: {
               color: "rgba(148, 163, 184, 0.1)",
-            },
+            }
           },
           y: {
+            type: 'linear',
+            position: 'left',
+            min: 0,
+            max: 25000000,
             ticks: {
-              color: "#94a3b8",
+              color: "#3b82f6",
+              stepSize: 5000000,
             },
             grid: {
               color: "rgba(148, 163, 184, 0.1)",
             },
-            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Attacks',
+              color: '#3b82f6',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
           },
-        },
-        interaction: {
-          mode: "nearest",
-          axis: "x",
-          intersect: false,
+          y1: {
+            type: 'linear',
+            position: 'right',
+            min: 0,
+            max: 250000,
+            ticks: {
+              color: "#94a3b8"
+            },
+            grid: {
+              drawOnChartArea: false,
+            },
+            title: {
+              display: true,
+              text: 'Targets / Attackers',
+              color: '#94a3b8',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
+          },
         },
         animation: {
           duration: 1000,
