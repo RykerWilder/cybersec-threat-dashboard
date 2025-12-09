@@ -12,8 +12,25 @@ const AttacksTrend = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        
+        const formatDate = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        
+        const startDateStr = formatDate(startDate);
+        const endDateStr = formatDate(endDate);
+        
+        console.log(`Fetching data from ${startDateStr} to ${endDateStr}`);
+        
         const response = await fetch(
-          "https://isc.sans.edu/api/dailysummary/2025-11-01/2025-12-02?json"
+          `https://isc.sans.edu/api/dailysummary/${startDateStr}/${endDateStr}?json`
         );
         
         if (!response.ok) {
@@ -164,8 +181,11 @@ const AttacksTrend = () => {
             min: 0,
             max: 25000000,
             ticks: {
-              color: "#94a3b8",
+              color: "#3b82f6",
               stepSize: 5000000,
+              callback: function(value) {
+                return (value / 1000000).toFixed(0) + 'M';
+              }
             },
             grid: {
               color: "rgba(148, 163, 184, 0.1)",
@@ -173,9 +193,9 @@ const AttacksTrend = () => {
             title: {
               display: true,
               text: 'Attacks',
-              color: '#94a3b8',
+              color: '#3b82f6',
               font: {
-                size: 13,
+                size: 12,
                 weight: 'bold'
               }
             }
@@ -184,19 +204,18 @@ const AttacksTrend = () => {
             type: 'linear',
             position: 'right',
             min: 0,
-            max: 250000,
             ticks: {
-              color: "#94a3b8"
+              color: "#94a3b8",
             },
             grid: {
               drawOnChartArea: false,
             },
             title: {
               display: true,
-              text: 'Attackers',
+              text: 'Targets / Attackers',
               color: '#94a3b8',
               font: {
-                size: 13,
+                size: 12,
                 weight: 'bold'
               }
             }
