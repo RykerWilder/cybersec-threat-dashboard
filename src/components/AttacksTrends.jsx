@@ -164,7 +164,7 @@ const AttacksTrend = () => {
             min: 0,
             max: 25000000,
             ticks: {
-              color: "#3b82f6",
+              color: "#94a3b8",
               stepSize: 5000000,
             },
             grid: {
@@ -173,9 +173,9 @@ const AttacksTrend = () => {
             title: {
               display: true,
               text: 'Attacks',
-              color: '#3b82f6',
+              color: '#94a3b8',
               font: {
-                size: 12,
+                size: 13,
                 weight: 'bold'
               }
             }
@@ -193,10 +193,10 @@ const AttacksTrend = () => {
             },
             title: {
               display: true,
-              text: 'Targets / Attackers',
+              text: 'Attackers',
               color: '#94a3b8',
               font: {
-                size: 12,
+                size: 13,
                 weight: 'bold'
               }
             }
