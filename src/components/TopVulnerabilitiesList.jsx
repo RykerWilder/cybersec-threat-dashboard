@@ -69,7 +69,7 @@ const TopVulnerabilitiesList = () => {
   }
 
   return (
-    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-[300px] flex flex-col">
+    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-[500px] flex flex-col w-[40%]">
       <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
         NVD Latest Vulnerabilities Explanation
       </h3>

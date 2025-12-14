@@ -17,10 +17,10 @@ function App() {
             <PopularThreats />
             <NVDVulnerabilitySeverity />
           </div>
-          <div>
-            {/* <CyberThreatMap /> */}
+          <div className="flex gap-5">
+            <CyberThreatMap />
+            <TopVulnerabilitiesList />
           </div>
-          <TopVulnerabilitiesList />
           <AttacksTrend />
         </div>
       </div>
