@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 const TopVulnerabilitiesList = () => {
   const [vulnerabilities, setVulnerabilities] = useState([]);
@@ -12,30 +11,12 @@ const TopVulnerabilitiesList = () => {
         setLoading(true);
         setError(null);
 
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 7);
-
-        const pubEndDate = endDate.toISOString();
-        const pubStartDate = startDate.toISOString();
-
-        const response = await axios.get(
-          `https://services.nvd.nist.gov/rest/json/cves/2.0`,
-          {
-            params: {
-              resultsPerPage: 10,
-              pubStartDate: pubStartDate,
-              pubEndDate: pubEndDate,
-            },
-            headers: {
-              accept: "application/json",
-            },
-          }
-        );
-
-        const vulnerabilitiesData = response.data.vulnerabilities || [];
-
-        setVulnerabilities(vulnerabilitiesData);
+        const response = await fetch("/api/nvd-severity");
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        const data = await response.json();
+        setVulnerabilities(data);
       } catch (err) {
         console.error("Data fetch error:", err);
         setError(err.message || "Error downloading data");
@@ -71,7 +52,7 @@ const TopVulnerabilitiesList = () => {
   return (
     <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-[500px] flex flex-col w-[40%]">
       <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
-        NVD Latest Vulnerabilities Explanation
+        NVD Latest Vulnerabilities
       </h3>
       <div className="space-y-3 flex-1 overflow-y-auto">
         {vulnerabilities.length === 0 ? (
@@ -81,37 +62,29 @@ const TopVulnerabilitiesList = () => {
         ) : (
           vulnerabilities.map((vulnerability, index) => (
             <div
-              key={vulnerability.cve.id}
+              key={vulnerability.cveId}
               className="p-3 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-750 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3 flex-1">
-                  <div className="w-3 h-3 rounded-full bg-violet-400 mt-1.5"></div>
+                  <div 
+                    className="w-3 h-3 rounded-full mt-1.5" 
+                    style={{ backgroundColor: vulnerability.color || '#94a3b8' }}
+                  ></div>
                   <div className="flex-1">
-                    {/* Title CVE */}
                     <a
-                      href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cve.id}`}
-                      className="
-                    underline text-sm text-slate-200 font-semibold"
+                      href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cveId}`}
+                      className="underline text-sm text-slate-200 font-semibold"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {vulnerability.cve.id}
+                      {vulnerability.cveId}
                     </a>
-                    {/* Description */}
                     <div className="text-xs text-slate-400 mt-2 line-clamp-3">
-                      {vulnerability.cve.descriptions?.[0]?.value ||
-                        "No description available"}
+                      CVSS {vulnerability.cvssScore?.toFixed(1) || 'N/A'} - {vulnerability.severity || 'Unknown'}
                     </div>
-                    {/* Metadata */}
                     <div className="flex items-center space-x-4 mt-2 text-xs text-slate-500">
-                      <span>
-                        Published:{" "}
-                        {new Date(
-                          vulnerability.cve.published
-                        ).toLocaleDateString()}
-                      </span>
-                      <span>Status: {vulnerability.cve.vulnStatus}</span>
+                      <span>Severity: {vulnerability.severity || 'Unknown'}</span>
                     </div>
                   </div>
                 </div>

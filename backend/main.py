@@ -19,7 +19,7 @@ app.add_middleware(
 ISC_BASE_URL = "https://isc.sans.edu/api/dailysummary"
 NVD_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
-# VirusTotal
+
 VT_API_KEY = os.getenv("VT_API_KEY", "INSERISCI_API_KEY_QUI")
 VT_BASE_URL = "https://www.virustotal.com/api/v3/popular_threat_categories"
 
@@ -93,11 +93,11 @@ async def get_attacks_trend() -> List[Dict[str, Any]]:
 
 
 @app.get("/api/nvd-severity")
-async def get_nvd_severity() -> List[Dict[str, Any]]:
-    """Ultime 10 CVE con severity colorata (7 giorni)"""
+async def get_nvd_severity():
+    """Ultime 10 CVE degli ultimi 7 giorni con severity, score e colori"""
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=7)
-
+    
     params = {
         "resultsPerPage": 10,
         "pubStartDate": start_date.isoformat() + "Z",
@@ -113,58 +113,43 @@ async def get_nvd_severity() -> List[Dict[str, Any]]:
     if resp.status_code != 200:
         raise HTTPException(
             status_code=resp.status_code,
-            detail=f"NVD API returned status {resp.status_code}",
+            detail=f"NVD API returned status {resp.status_code}"
         )
 
     data = resp.json()
     vulnerabilities = data.get("vulnerabilities", [])
 
     if not vulnerabilities:
-        raise HTTPException(status_code=404, detail="No recent vulnerabilities found")
+        return []
 
     normalized = []
     for vuln in vulnerabilities[:10]:
         cve = vuln.get("cve", {})
         cvss_v31 = cve.get("metrics", {}).get("cvssMetricV31", [{}])[0]
         cvss_v2 = cve.get("metrics", {}).get("cvssMetricV2", [{}])[0]
-
+        
         cvss_v3_score = cvss_v31.get("cvssData", {}).get("baseScore", 0)
         cvss_v2_score = cvss_v2.get("cvssData", {}).get("baseScore", 0)
         cvss_score = cvss_v3_score or cvss_v2_score or 0
-
+        
         severity = get_severity(cvss_score)
         color = get_severity_color(severity)
-
-        normalized.append(
-            {
-                "cveId": cve.get("id", "Unknown"),
-                "cvssScore": float(cvss_score),
-                "severity": severity,
-                "color": color,
-                "borderColor": color.replace("0.8", "1")
-                if "0.8" in color
-                else color,
-            }
-        )
+        
+        normalized.append({
+            "cveId": cve.get("id", "Unknown"),
+            "cvssScore": float(cvss_score),
+            "severity": severity,
+            "color": color,
+            "borderColor": color.replace("#", "#aa") if "#" in color else color,
+        })
 
     return normalized
 
 
 @app.get("/api/popular-threats")
-async def get_popular_threats() -> Dict[str, Any]:
+async def get_popular_threats():
     """
-    Restituisce i dati già nel formato Chart.js:
-    {
-      "labels": [...],
-      "datasets": [
-        {
-          "data": [...],
-          "backgroundColor": [...],
-          "borderColor": [...],
-          "borderWidth": 2
-        }
-      ]
-    }
+    Restituisce i dati già nel formato Chart.js per il frontend
     """
     headers = {
         "accept": "application/json",
@@ -184,10 +169,9 @@ async def get_popular_threats() -> Dict[str, Any]:
         )
 
     data = resp.json()
-
     vt_items = data.get("data", [])
 
-    raw_categories: List[str] = []
+    raw_categories = []
     for item in vt_items:
         if isinstance(item, str):
             raw_categories.append(item)
@@ -225,7 +209,7 @@ async def get_popular_threats() -> Dict[str, Any]:
         "#6d28d9",
         "#5b21b6",
         "#4c1d95",
-    ][: len(top_cats)]
+    ][:len(top_cats)]
 
     border_color = ["#324158"]
 
@@ -242,3 +226,8 @@ async def get_popular_threats() -> Dict[str, Any]:
     }
 
     return chart_data
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
