@@ -54,7 +54,7 @@ const AttacksTrend = () => {
               label: "Number of targets",
               data: targetsData,
               borderColor: "#ef4444",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              backgroundColor: "rgba(34, 197, 94, 0.1)",
               borderWidth: 2,
               tension: 0.4,
               fill: true,
@@ -113,10 +113,18 @@ const AttacksTrend = () => {
           legend: {
             display: true,
             position: "top",
+            labels: {
+              color: "#90a1b8"
+            }
           },
           title: {
             display: true,
+            color: "#90a1b8",
             text: "Attacks Trend - Last 30 days",
+            font: {
+              size: 20,        
+              weight: "bold"
+            },
           },
           tooltip: {
             mode: "index",
@@ -128,17 +136,24 @@ const AttacksTrend = () => {
             ticks: {
               maxRotation: 90,
               minRotation: 90,
+              color: "#90a1b8"
             },
           },
           y: {
             type: "linear",
             position: "left",
             min: 0,
+            ticks:{
+              color: "#90a1b8"
+            }
           },
           y1: {
             type: "linear",
             position: "right",
             min: 0,
+            ticks:{
+              color: "#90a1b8"
+            },
             grid: {
               drawOnChartArea: false,
             },
