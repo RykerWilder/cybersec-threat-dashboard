@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as Chart from "chart.js";
-import axios from "axios";
+import Chart from "chart.js/auto";
 
 const PopularThreats = () => {
   const chartRef = useRef(null);
@@ -13,56 +12,14 @@ const PopularThreats = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        const response = await axios.get(
-          "https://www.",
-          {
-            headers: {
-              accept: "application/json",
-              "x-apikey": "",
-            },
-          }
-        );
-
-        const threats = response.data.data || [];
-
-        const top5Threats = threats.slice(7, 15);
-
-        const labels = top5Threats.map((threat) => {
-          return (
-            threat
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l) => l.toUpperCase()) || "Unknown"
-          );
-        });
-
-        const data = top5Threats.map((threat, index) => {
-          return 100 - index * 15;
-        });
-
-        const backgroundColors = [
-          "#c084fc",
-          "#a855f7",
-          "#9333ea",
-          "#7c3aed",
-          "#6d28d9",
-          "#5b21b6",
-          "#4c1d95"
-        ];
-
-        const borderColor = ["#324158"];
-
-        setChartData({
-          labels: labels,
-          datasets: [
-            {
-              data: data,
-              backgroundColor: backgroundColors,
-              borderColor: borderColor,
-              borderWidth: 2,
-            },
-          ],
-        });
+        const response = await fetch("/api/popular-threats");
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        const data = await response.json();
+        setChartData(data);
       } catch (err) {
         console.error("Data fetch error:", err);
         setError(err.message || "Error downloading data");
@@ -77,20 +34,12 @@ const PopularThreats = () => {
   useEffect(() => {
     if (!chartData || loading) return;
 
-    Chart.Chart.register(
-      Chart.ArcElement,
-      Chart.DoughnutController,
-      Chart.Title,
-      Chart.Tooltip,
-      Chart.Legend
-    );
-
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
     const ctx = chartRef.current.getContext("2d");
-    chartInstanceRef.current = new Chart.Chart(ctx, {
+    chartInstanceRef.current = new Chart(ctx, {
       type: "doughnut",
       data: chartData,
       options: {
@@ -103,41 +52,31 @@ const PopularThreats = () => {
             labels: {
               color: "#94a3b8",
               padding: 15,
-              font: {
-                size: 12,
-              },
-            },
+              font: { size: 12 }
+            }
           },
           title: {
             display: true,
             text: "Popular Threat Categories",
             color: "#94a3b8",
-            font: {
-              size: 20,
-              weight: "bold",
-            },
-            padding: {
-              bottom: 20,
-            },
+            font: { size: 20, weight: "bold" },
+            padding: { bottom: 20 }
           },
           tooltip: {
             callbacks: {
-              label: function (context) {
+              label: function(context) {
                 let label = context.label || "";
-                if (label) {
-                  label += ": ";
-                }
-                label += context.parsed + " (Score)";
-                return label;
-              },
-            },
-          },
+                if (label) label += ": ";
+                return label + context.parsed + " (Score)";
+              }
+            }
+          }
         },
         animation: {
           duration: 1000,
-          easing: "easeInOutQuart",
-        },
-      },
+          easing: "easeInOutQuart"
+        }
+      }
     });
 
     return () => {
@@ -150,7 +89,7 @@ const PopularThreats = () => {
   if (loading) {
     return (
       <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 flex items-center justify-center">
-        <div className="text-slate-300">Loading Virus Total data...</div>
+        <div className="text-slate-300">Loading VirusTotal data...</div>
       </div>
     );
   }
@@ -168,7 +107,7 @@ const PopularThreats = () => {
 
   return (
     <div className="border border-stone-500 rounded-lg p-4 bg-slate-700">
-      <div className="h-100">
+      <div className="h-96">
         <canvas ref={chartRef}></canvas>
       </div>
     </div>
