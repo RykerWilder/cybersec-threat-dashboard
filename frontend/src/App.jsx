@@ -1,7 +1,7 @@
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
-// import PopularThreats from './components/PopularThreats';
+import PopularThreats from './components/PopularThreats';
 import NVDVulnerabilitySeverity from './components/NVDVulnerabilitySeverity';
 import TopVulnerabilitiesList from './components/TopVulnerabilitiesList';
 import CyberThreatMap from './components/ThreatMap';
@@ -14,7 +14,7 @@ function App() {
       <div className="px-10 max-w-[1500px] mx-auto">
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-5 w-full">
-            {/* <PopularThreats /> */}
+            <PopularThreats />
             <NVDVulnerabilitySeverity />
           </div>
           <div className="flex gap-5">

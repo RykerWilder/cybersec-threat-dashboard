@@ -1,12 +1,15 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title="Threat Dashboard API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,8 +22,9 @@ app.add_middleware(
 ISC_BASE_URL = "https://isc.sans.edu/api/dailysummary"
 NVD_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
-
-VT_API_KEY = os.getenv("VT_API_KEY", "INSERISCI_API_KEY_QUI")
+VT_API_KEY = os.getenv("VT_API_KEY")
+if not VT_API_KEY:
+    raise ValueError("No VT_API_KEY in .env file")
 VT_BASE_URL = "https://www.virustotal.com/api/v3/popular_threat_categories"
 
 
@@ -60,12 +64,12 @@ async def get_attacks_trend() -> List[Dict[str, Any]]:
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.get(url)
     except httpx.RequestError as exc:
-        raise HTTPException(status_code=502, detail=f"Error calling ISC API: {exc}")
+        raise HTTPException(status_code=502, detail=f"ISC API error: {exc}")
 
     if resp.status_code != 200:
         raise HTTPException(
             status_code=resp.status_code,
-            detail=f"ISC API returned status {resp.status_code}",
+            detail=f"ISC API {resp.status_code}: {resp.text[:200]}",
         )
 
     data = resp.json()
@@ -93,8 +97,7 @@ async def get_attacks_trend() -> List[Dict[str, Any]]:
 
 
 @app.get("/api/nvd-severity")
-async def get_nvd_severity():
-    """Ultime 10 CVE degli ultimi 7 giorni con severity, score e colori"""
+async def get_nvd_severity() -> List[Dict[str, Any]]:
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=7)
     
@@ -108,12 +111,12 @@ async def get_nvd_severity():
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.get(NVD_BASE_URL, params=params)
     except httpx.RequestError as exc:
-        raise HTTPException(status_code=502, detail=f"Error calling NVD API: {exc}")
+        raise HTTPException(status_code=502, detail=f"NVD API error: {exc}")
 
     if resp.status_code != 200:
         raise HTTPException(
             status_code=resp.status_code,
-            detail=f"NVD API returned status {resp.status_code}"
+            detail=f"NVD API {resp.status_code}: {resp.text[:200]}"
         )
 
     data = resp.json()
@@ -147,10 +150,7 @@ async def get_nvd_severity():
 
 
 @app.get("/api/popular-threats")
-async def get_popular_threats():
-    """
-    Restituisce i dati già nel formato Chart.js per il frontend
-    """
+async def get_popular_threats() -> Dict[str, Any]:
     headers = {
         "accept": "application/json",
         "x-apikey": VT_API_KEY,
@@ -159,75 +159,58 @@ async def get_popular_threats():
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.get(VT_BASE_URL, headers=headers)
-    except httpx.RequestError as exc:
-        raise HTTPException(status_code=502, detail=f"Error calling VirusTotal API: {exc}")
-
-    if resp.status_code != 200:
-        raise HTTPException(
-            status_code=resp.status_code,
-            detail=f"VirusTotal API returned status {resp.status_code}: {resp.text}",
-        )
-
-    data = resp.json()
-    vt_items = data.get("data", [])
-
-    raw_categories = []
-    for item in vt_items:
-        if isinstance(item, str):
-            raw_categories.append(item)
-        elif isinstance(item, dict):
-            attr = item.get("attributes", {})
-            cat = (
-                attr.get("label")
-                or attr.get("category")
-                or item.get("id")
-                or item.get("type")
+            
+        if resp.status_code != 200:
+            raise HTTPException(
+                status_code=resp.status_code,
+                detail=f"VirusTotal {resp.status_code}: {resp.text[:300]}",
             )
-            if isinstance(cat, str):
-                raw_categories.append(cat)
 
-    if not raw_categories:
-        raise HTTPException(status_code=502, detail="No categories returned by VirusTotal")
+        data = resp.json()
+        categories = data.get("data", [])
 
-    if len(raw_categories) > 15:
-        top_cats = raw_categories[7:15]
-    else:
-        top_cats = raw_categories[:5]
+        top_categories = categories[:8]
+        labels = [cat.replace("_", " ").title() for cat in top_categories]
 
-    labels = [
-        (cat.replace("_", " ").title() if isinstance(cat, str) else "Unknown")
-        for cat in top_cats
-    ]
+        n = len(top_categories)
+        data_values = [95 - (i * 10) for i in range(n)]
 
-    data_values = [100 - idx * 15 for idx in range(len(top_cats))]
+        background_colors = [
+            "#c084fc", "#a855f7", "#9333ea", "#7c3aed",
+            "#6d28d9", "#5b21b6", "#4c1d95", "#3730a3"
+        ][:n]
 
-    background_colors = [
-        "#c084fc",
-        "#a855f7",
-        "#9333ea",
-        "#7c3aed",
-        "#6d28d9",
-        "#5b21b6",
-        "#4c1d95",
-    ][:len(top_cats)]
-
-    border_color = ["#324158"]
-
-    chart_data = {
-        "labels": labels,
-        "datasets": [
-            {
+        chart_data = {
+            "labels": labels,
+            "datasets": [{
+                "label": "Threat Popularity",
                 "data": data_values,
                 "backgroundColor": background_colors,
-                "borderColor": border_color,
+                "borderColor": "#1e293b",
                 "borderWidth": 2,
-            }
-        ],
-    }
+            }]
+        }
+        
+        return chart_data
+        
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=502, detail=f"VirusTotal Network: {exc}")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error: {exc}")
 
-    return chart_data
+
+@app.get("/health")
+async def health_check():
+    """API health check"""
+    return {
+        "status": "healthy",
+        "vt_key_loaded": bool(VT_API_KEY),
+        "endpoints": ["/api/attacks-trend", "/api/nvd-severity", "/api/popular-threats"]
+    }
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("Starting Threat Dashboard")
+    print(f"Health: http://localhost:8000/health")
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
