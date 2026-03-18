@@ -9,7 +9,7 @@ import AttacksTrend from './components/AttacksTrends';
 
 function App() {
   return (
-    <div className="bg-slate-800 min-h-screen">
+    <div className="bg-slate-800 min-h-screen max-w-[1500px]">
       <Header />
       <div className="px-10 max-w-[1500px] mx-auto">
         <div className="flex flex-col gap-5">
