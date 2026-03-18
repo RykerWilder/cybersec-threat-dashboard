@@ -59,7 +59,7 @@ const ThreatMap = () => {
   };
 
   return (
-    <div className="bg-slate-700 break-inside-avoid border border-stone-500 rounded-lg p-4 w-[60%]">
+    <div className="bg-slate-700 break-inside-avoid border border-stone-500 rounded-lg p-4 w-[65%]">
       <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
         Cyber Threat Map
       </h3>
