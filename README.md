@@ -28,3 +28,20 @@ The dashboard has five main charts:
 | `/api/nvd-severity` | Top 10 CVEs last 7 days (score, severity, colors) | **NVD NIST** | Bar/Scatter | **Real** |
 | `/api/popular-threats` | Top 8 threat categories (% + name) | **VirusTotal** | **Doughnut** | **Real** |
 | `/health` | API Status | - | - | - |
+
+## Installation
+
+1. Clone repository
+```bash
+git clone https://github.com/RykerWilder/cybersec-threat-dashboard
+```
+
+2. Insert Virus Total API Key
+```bash
+echo "VT_API_KEY=your_virustotal_key_here" > backend/.env
+```
+
+3. Start container (Startup around 30s)
+```bash
+docker compose up -d --build
+```
