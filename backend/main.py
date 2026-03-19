@@ -11,9 +11,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Threat Dashboard API", version="1.0.0")
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://localhost",
+    "http://127.0.0.1",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,7 +69,7 @@ async def get_attacks_trend() -> List[Dict[str, Any]]:
     url = f"{ISC_BASE_URL}/{start_str}/{end_str}?json"
 
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
             resp = await client.get(url)
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail=f"ISC API error: {exc}")
@@ -108,7 +116,7 @@ async def get_nvd_severity() -> List[Dict[str, Any]]:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
             resp = await client.get(NVD_BASE_URL, params=params)
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail=f"NVD API error: {exc}")
@@ -157,7 +165,7 @@ async def get_popular_threats() -> Dict[str, Any]:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
             resp = await client.get(VT_BASE_URL, headers=headers)
             
         if resp.status_code != 200:
