@@ -33,7 +33,7 @@ const Header = () => {
           </svg>
 
           <h1 className="text-4xl text-white">
-            Cybersecurity Threat Dashboard
+            Cyberthreat Live Dashboard
           </h1>
         </div>
       </div>
