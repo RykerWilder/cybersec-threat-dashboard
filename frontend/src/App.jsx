@@ -18,7 +18,7 @@ function App() {
             <NVDVulnerabilitySeverity />
           </div>
           <div className="flex gap-5">
-            <CyberThreatMap />
+            <iframe width="900" height="500" src="https://cybermap.kaspersky.com/en/widget/dynamic/dark" frameborder="0"></iframe>
             <TopVulnerabilitiesList />
           </div>
           <AttacksTrend />
