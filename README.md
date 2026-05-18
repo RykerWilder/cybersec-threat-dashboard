@@ -14,11 +14,31 @@ The dashboard has five main charts:
 
 2. The second chart (bar chart) uses `/api/nvd-severity` and displays the top 10 CVEs from the last 7 days, colored by severity from NVD NIST.
 
-3. Kaspersky dynamic map with real time attack in whole world.
+3. The iframe opens the [Check Point Live Cyber ​​Threat Map](https://threatmap.checkpoint.com), an interactive map that shows cyber attacks observed in real or near real time.
 
 4. The fourth graph is a list using `/api/nvd-severity` and displays all the latest vulnerabilities, with the option to learn more by going directly to the NVD NIST website.
 
-5. The fifth graph (line chart) uses the `/api/attacks-trend` endpoint and shows the attack trend over the last 30 days with three lines for records, targets, and sources from ISC SANS.
+5. The embedded iframe in the dashboard loads the [Kaspersky](https://cybermap.kaspersky.com) Cyberthreat Live Map, an external map that displays real-time security events detected by the Kaspersky telemetry network. The data displayed does not represent the exact physical location of an attacker, but rather detection events collected by Kaspersky security products and systems worldwide.
+
+The map displays several detection categories:
+
+- OAS (On-Access Scan): Malware detected when a file is opened, copied, executed, or saved.
+
+- ODS (On-Demand Scan): Malware detected during a manual or scheduled scan initiated by the user.
+
+- WAV (Web Anti-Virus): Threats detected in web traffic or content.
+
+- MAV (Mail Anti-Virus): Threats detected in email messages or attachments.
+
+- IDS (Intrusion Detection System): Attacks or malicious activity detected at the network level.
+
+- VUL / VLNS (Vulnerability Scan): Detections related to known vulnerabilities in systems.
+
+- KAS (Kaspersky Anti-Spam): Suspicious or unwanted email traffic identified by Kaspersky reputation systems.
+
+- BAD (Botnet Activity Detection): Statistics on IP addresses associated with DDoS attack victims and botnet command and control servers detected by Kaspersky.
+
+6. The sixth graph (line chart) uses the `/api/attacks-trend` endpoint and shows the attack trend over the last 30 days with three lines for records, targets, and sources from ISC SANS.
 
 ## API Endpoints
 

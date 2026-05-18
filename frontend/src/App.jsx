@@ -1,11 +1,10 @@
-import './App.css';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import PopularThreats from './components/PopularThreats';
-import NVDVulnerabilitySeverity from './components/NVDVulnerabilitySeverity';
-import TopVulnerabilitiesList from './components/TopVulnerabilitiesList';
-import CyberThreatMap from './components/ThreatMap';
-import AttacksTrend from './components/AttacksTrends';
+import "./App.css";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import PopularThreats from "./components/PopularThreats";
+import NVDVulnerabilitySeverity from "./components/NVDVulnerabilitySeverity";
+import TopVulnerabilitiesList from "./components/TopVulnerabilitiesList";
+import AttacksTrend from "./components/AttacksTrends";
 
 function App() {
   return (
@@ -18,11 +17,21 @@ function App() {
             <NVDVulnerabilitySeverity />
           </div>
           <div className="flex gap-5">
-            <CyberThreatMap />
+            <iframe
+              width="900"
+              height="500"
+              src="https://threatmap.checkpoint.com"
+              className="rounded-lg"
+            ></iframe>
             <TopVulnerabilitiesList />
           </div>
           <div>
-            <iframe width="1000" height="600" src="https://cybermap.kaspersky.com/en/widget/dynamic/dark" frameborder="0"></iframe>
+            <iframe
+              width="1000"
+              height="600"
+              src="https://cybermap.kaspersky.com/en/widget/dynamic/dark"
+              className="rounded-lg"
+            ></iframe>
           </div>
           <AttacksTrend />
         </div>
