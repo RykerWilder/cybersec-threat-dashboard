@@ -14,7 +14,7 @@ The dashboard has five main charts:
 
 2. The second chart (bar chart) uses `/api/nvd-severity` and displays the top 10 CVEs from the last 7 days, colored by severity from NVD NIST.
 
-3. The third chart (cyber threat map), under development.
+3. Kaspersky dynamic map with real time attack in whole world.
 
 4. The fourth graph is a list using `/api/nvd-severity` and displays all the latest vulnerabilities, with the option to learn more by going directly to the NVD NIST website.
 
