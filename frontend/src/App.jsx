@@ -20,17 +20,16 @@ function App() {
             <iframe
               width="900"
               height="500"
-              src="https://threatmap.checkpoint.com"
+              src="https://cybermap.kaspersky.com/en/widget/dynamic/dark"
               className="rounded-lg"
             ></iframe>
             <TopVulnerabilitiesList />
           </div>
           <div>
             <iframe
-              width="1000"
-              height="600"
-              src="https://cybermap.kaspersky.com/en/widget/dynamic/dark"
-              className="rounded-lg"
+              height="500"
+              src="https://threatmap.checkpoint.com"
+              className="rounded-lg w-full"
             ></iframe>
           </div>
           <AttacksTrend />
