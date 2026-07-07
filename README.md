@@ -1,6 +1,6 @@
 # Threat Dashboard Documentation
 
-![Cyber Threat Dashboard](./frontend/src/assets/ThreatDashboard.jpeg)
+<img src="https://github.com/RykerWilder/static_files/blob/main/bb5e1655-d629-4620-bc32-1a5055ea68fe.webp" alt="Threat Dashboard">
 
 ## Overview
 Cybersecurity dashboard displaying real, up-to-date data from 3 different sources:
