@@ -1,6 +1,6 @@
 # Threat Dashboard Documentation
 
-<img src="https://github.com/RykerWilder/static_files/blob/main/bb5e1655-d629-4620-bc32-1a5055ea68fe.webp" alt="Threat Dashboard">
+<img src="https://github.com/RykerWilder/static_files/blob/main/cyber-threat-dash1.webp" alt="Threat Dashboard">
 
 ## Overview
 Cybersecurity dashboard displaying real, up-to-date data from 3 different sources:
