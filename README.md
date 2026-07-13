@@ -1,5 +1,10 @@
 # Threat Dashboard Documentation
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black&labelColor=F7DF1E)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+
 <img src="https://github.com/RykerWilder/static_files/blob/main/cyber-threat-dash1.webp" alt="Threat Dashboard">
 
 ## Overview
