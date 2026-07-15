@@ -12,9 +12,137 @@ import {
   Filler,
 } from "chart.js";
 
-const AttacksTrend = () => {
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LineController,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+const METRICS = [
+  {
+    key: "records",
+    label: "Number of attacks",
+    color: "#3b82f6",
+    background: "rgba(59, 130, 246, 0.15)",
+  },
+  {
+    key: "targets",
+    label: "Number of targets",
+    color: "#ef4444",
+    background: "rgba(239, 68, 68, 0.15)",
+  },
+  {
+    key: "sources",
+    label: "Number of attackers",
+    color: "#22c55e",
+    background: "rgba(34, 197, 94, 0.15)",
+  },
+];
+
+const SingleMetricChart = ({ metric, labels, values }) => {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
+
+  useEffect(() => {
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    chartInstanceRef.current = new ChartJS(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: metric.label,
+            data: values,
+            borderColor: metric.color,
+            backgroundColor: metric.background,
+            borderWidth: 2,
+            pointRadius: 2,
+            pointHoverRadius: 4,
+            tension: 0.35,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            color: "#e2e8f0",
+            text: metric.label,
+            align: "start",
+            font: {
+              size: 15,
+              weight: "bold",
+            },
+            padding: { bottom: 10 },
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 90,
+              minRotation: 90,
+              color: "#90a1b8",
+              autoSkip: true,
+              maxTicksLimit: 15,
+            },
+            grid: {
+              color: "rgba(148, 163, 184, 0.1)",
+            },
+          },
+          y: {
+            type: "linear",
+            position: "left",
+            min: 0,
+            ticks: {
+              color: "#90a1b8",
+            },
+            grid: {
+              color: "rgba(148, 163, 184, 0.1)",
+            },
+          },
+        },
+      },
+    });
+
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+    };
+  }, [metric, labels, values]);
+
+  return (
+    <div className="h-64">
+      <canvas ref={chartRef}></canvas>
+    </div>
+  );
+};
+
+const AttacksTrend = () => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,45 +161,13 @@ const AttacksTrend = () => {
         const data = await response.json();
 
         const labels = data.map((item) => item.date);
-        const recordsData = data.map((item) => item.records || 0);
-        const targetsData = data.map((item) => item.targets || 0);
-        const sourcesData = data.map((item) => item.sources || 0);
+        const values = {
+          records: data.map((item) => item.records || 0),
+          targets: data.map((item) => item.targets || 0),
+          sources: data.map((item) => item.sources || 0),
+        };
 
-        setChartData({
-          labels,
-          datasets: [
-            {
-              label: "Number of attacks",
-              data: recordsData,
-              borderColor: "#3b82f6",
-              backgroundColor: "rgba(59, 130, 246, 0.1)",
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true,
-              yAxisID: "y",
-            },
-            {
-              label: "Number of targets",
-              data: targetsData,
-              borderColor: "#ef4444",
-              backgroundColor: "rgba(34, 197, 94, 0.1)",
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true,
-              yAxisID: "y1",
-            },
-            {
-              label: "Number of attackers",
-              data: sourcesData,
-              borderColor: "#22c55e",
-              backgroundColor: "rgba(34, 197, 94, 0.1)",
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true,
-              yAxisID: "y1",
-            },
-          ],
-        });
+        setChartData({ labels, values });
       } catch (err) {
         console.error("Data fetch error:", err);
         setError(err.message || "Error downloading data");
@@ -82,92 +178,6 @@ const AttacksTrend = () => {
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (!chartData || loading) return;
-
-    ChartJS.register(
-      LineElement,
-      PointElement,
-      LineController,
-      CategoryScale,
-      LinearScale,
-      Title,
-      Tooltip,
-      Legend,
-      Filler
-    );
-
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
-
-    const ctx = chartRef.current.getContext("2d");
-    chartInstanceRef.current = new ChartJS(ctx, {
-      type: "line",
-      data: chartData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: "top",
-            labels: {
-              color: "#90a1b8"
-            }
-          },
-          title: {
-            display: true,
-            color: "#90a1b8",
-            text: "Attacks Trend - Last 30 days",
-            font: {
-              size: 20,        
-              weight: "bold"
-            },
-          },
-          tooltip: {
-            mode: "index",
-            intersect: false,
-          },
-        },
-        scales: {
-          x: {
-            ticks: {
-              maxRotation: 90,
-              minRotation: 90,
-              color: "#90a1b8"
-            },
-          },
-          y: {
-            type: "linear",
-            position: "left",
-            min: 0,
-            ticks:{
-              color: "#90a1b8"
-            }
-          },
-          y1: {
-            type: "linear",
-            position: "right",
-            min: 0,
-            ticks:{
-              color: "#90a1b8"
-            },
-            grid: {
-              drawOnChartArea: false,
-            },
-          },
-        },
-      },
-    });
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-    };
-  }, [chartData, loading]);
 
   if (loading) {
     return (
@@ -189,9 +199,23 @@ const AttacksTrend = () => {
   }
 
   return (
-    <div className="border border-stone-500 rounded-lg p-4 bg-slate-700">
-      <div className="h-96">
-        <canvas ref={chartRef}></canvas>
+    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
+      <div className="text-slate-300 font-bold text-xl mb-4">
+        Attacks Trend - Last 30 days
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {METRICS.map((metric, index) => (
+          <div
+            key={metric.key}
+            className={index === 0 ? "lg:col-span-2" : ""}
+          >
+            <SingleMetricChart
+              metric={metric}
+              labels={chartData.labels}
+              values={chartData.values[metric.key]}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
