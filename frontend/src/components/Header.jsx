@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 
+const STATUS_CONFIG = {
+  active: { label: "Active", dotColor: "bg-green-500" },
+  degraded: { label: "Degraded", dotColor: "bg-yellow-500" },
+  inactive: { label: "Inactive", dotColor: "bg-red-500" },
+  checking: { label: "Checking...", dotColor: "bg-slate-400" },
+};
+
 const Header = () => {
   const [currentTime, setCurrentTime] = useState(
     new Date().toTimeString().split(" ")[0]
   );
+  const [status, setStatus] = useState("checking");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -12,6 +20,28 @@ const Header = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const response = await fetch("/api/health");
+        if (response.ok) {
+          setStatus("active");
+        } else {
+          setStatus("degraded");
+        }
+      } catch (err) {
+        setStatus("inactive");
+      }
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const { label, dotColor } = STATUS_CONFIG[status];
 
   return (
     <header className="px-10 max-w-[1500px] w-full mx-auto mb-5 pt-5">
@@ -39,9 +69,9 @@ const Header = () => {
       </div>
       <div className="flex gap-1 justify-between items-center border border-stone-500 rounded-lg p-2 bg-slate-700 mt-5">
         <div className="flex gap-2 items-center text-white">
-          <span className="rounded-full h-3 w-3 bg-green-500"></span>
+          <span className={`rounded-full h-3 w-3 ${dotColor}`}></span>
           <span className="font-bold">System Status: </span>
-          <span>Active</span>
+          <span>{label}</span>
         </div>
         <div>
           <span className="font-bold text-3xl text-slate-400" id="clock">
