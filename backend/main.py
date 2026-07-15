@@ -108,7 +108,6 @@ async def get_attacks_trend() -> List[Dict[str, Any]]:
 async def get_nvd_severity() -> List[Dict[str, Any]]:
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=7)
-    
     params = {
         "resultsPerPage": 10,
         "pubStartDate": start_date.isoformat() + "Z",
@@ -138,14 +137,11 @@ async def get_nvd_severity() -> List[Dict[str, Any]]:
         cve = vuln.get("cve", {})
         cvss_v31 = cve.get("metrics", {}).get("cvssMetricV31", [{}])[0]
         cvss_v2 = cve.get("metrics", {}).get("cvssMetricV2", [{}])[0]
-        
         cvss_v3_score = cvss_v31.get("cvssData", {}).get("baseScore", 0)
         cvss_v2_score = cvss_v2.get("cvssData", {}).get("baseScore", 0)
         cvss_score = cvss_v3_score or cvss_v2_score or 0
-        
         severity = get_severity(cvss_score)
         color = get_severity_color(severity)
-        
         normalized.append({
             "cveId": cve.get("id", "Unknown"),
             "cvssScore": float(cvss_score),
@@ -167,47 +163,44 @@ async def get_popular_threats() -> Dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
             resp = await client.get(VT_BASE_URL, headers=headers)
-            
-        if resp.status_code != 200:
-            raise HTTPException(
-                status_code=resp.status_code,
-                detail=f"VirusTotal {resp.status_code}: {resp.text[:300]}",
-            )
+            if resp.status_code != 200:
+                raise HTTPException(
+                    status_code=resp.status_code,
+                    detail=f"VirusTotal {resp.status_code}: {resp.text[:300]}",
+                )
 
-        data = resp.json()
-        categories = data.get("data", [])
+            data = resp.json()
+            categories = data.get("data", [])
 
-        top_categories = categories[:8]
-        labels = [cat.replace("_", " ").title() for cat in top_categories]
+            top_categories = categories[:8]
+            labels = [cat.replace("_", " ").title() for cat in top_categories]
 
-        n = len(top_categories)
-        data_values = [95 - (i * 10) for i in range(n)]
+            n = len(top_categories)
+            data_values = [95 - (i * 10) for i in range(n)]
 
-        background_colors = [
-            "#c084fc", "#a855f7", "#9333ea", "#7c3aed",
-            "#6d28d9", "#5b21b6", "#4c1d95", "#3730a3"
-        ][:n]
+            background_colors = [
+                "#c084fc", "#a855f7", "#9333ea", "#7c3aed",
+                "#6d28d9", "#5b21b6", "#4c1d95", "#3730a3"
+            ][:n]
 
-        chart_data = {
-            "labels": labels,
-            "datasets": [{
-                "label": "Threat Popularity",
-                "data": data_values,
-                "backgroundColor": background_colors,
-                "borderColor": "#1e293b",
-                "borderWidth": 2,
-            }]
-        }
-        
-        return chart_data
-        
+            chart_data = {
+                "labels": labels,
+                "datasets": [{
+                    "label": "Threat Popularity",
+                    "data": data_values,
+                    "backgroundColor": background_colors,
+                    "borderColor": "#1e293b",
+                    "borderWidth": 2,
+                }]
+            }
+            return chart_data
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail=f"VirusTotal Network: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Error: {exc}")
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     """API health check"""
     return {
@@ -220,5 +213,5 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     print("Starting Threat Dashboard")
-    print(f"Health: http://localhost:8000/health")
+    print(f"Health: http://localhost:8000/api/health")
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
