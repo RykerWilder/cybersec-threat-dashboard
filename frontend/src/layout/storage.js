@@ -23,8 +23,8 @@ export function normalizeLayout(input) {
     for (const raw of input) {
       const widget = WIDGETS_BY_ID[raw?.i];
       if (!widget || stored.has(widget.id)) continue;
-      const w = clamp(num(raw.w, widget.default.w), widget.minW, COLS);
-      const h = Math.max(widget.minH, num(raw.h, widget.default.h));
+      const w = clamp(num(raw.w, widget.default.w), widget.minW, Math.min(widget.maxW, COLS));
+      const h = clamp(num(raw.h, widget.default.h), widget.minH, widget.maxH);
       const x = clamp(num(raw.x, 0), 0, COLS - w);
       const y = Math.max(0, num(raw.y, 0));
       stored.set(widget.id, { i: widget.id, x, y, w, h });

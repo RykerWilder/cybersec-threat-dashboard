@@ -20,11 +20,28 @@ const KEY_DIRECTIONS = {
 const EDGE_SCROLL_ZONE = 80;
 const EDGE_SCROLL_SPEED = 14;
 
+// Size limits of one item, in grid units. Missing limits mean "no limit".
+const limitsOf = (meta, id) => {
+  const m = meta[id] ?? {};
+  return {
+    title: m.title ?? id,
+    minW: m.minW ?? 1,
+    maxW: Math.min(m.maxW ?? COLS, COLS),
+    minH: m.minH ?? 1,
+    maxH: m.maxH ?? Infinity,
+  };
+};
+
+const spanPx = (units, colWidth) => units * colWidth + (units - 1) * GAP;
+const heightPx = (units) => units * ROW_HEIGHT + (units - 1) * GAP;
+
 /**
  * Absolutely positioned 12-column grid.
  * - Read-only: renders each item at its grid position.
- * - Editable: items can be dragged (pointer) or moved/resized with the
- *   keyboard (arrows, Shift+arrows); other items are pushed out of the way.
+ * - Editable: items can be dragged, or resized from their right edge, bottom
+ *   edge or bottom-right corner, within each item's min/max size. An axis whose
+ *   min and max are equal is locked and gets no handle. Keyboard: arrows move,
+ *   Shift+arrows resize. Other items are pushed out of the way.
  */
 const GridLayout = ({
   layout,
@@ -68,14 +85,12 @@ const GridLayout = ({
     const stepY = ROW_HEIGHT + GAP;
     const dx = pointer.clientX + window.scrollX - state.startX;
     const dy = pointer.clientY + window.scrollY - state.startY;
-    const { item, orig } = state;
-    const limits = meta[item.i] ?? {};
-    const minW = limits.minW ?? 1;
-    const minH = limits.minH ?? 1;
+    const { item, orig, mode } = state;
+    const limits = limitsOf(meta, item.i);
 
     let proposed;
     let px;
-    if (state.mode === "move") {
+    if (mode === "move") {
       const left = clamp(orig.left + dx, 0, gridWidth - orig.w);
       const top = Math.max(0, orig.top + dy);
       proposed = applyChange(state.base, item.i, {
@@ -84,19 +99,30 @@ const GridLayout = ({
       });
       px = { left, top, w: orig.w, h: orig.h };
     } else {
-      const minWidthPx = minW * colWidth + (minW - 1) * GAP;
-      const minHeightPx = minH * ROW_HEIGHT + (minH - 1) * GAP;
-      const w = clamp(orig.w + dx, minWidthPx, gridWidth - orig.left);
-      const h = Math.max(minHeightPx, orig.h + dy);
-      proposed = applyChange(state.base, item.i, {
-        w: clamp(Math.round((w + GAP) / stepX), minW, COLS - item.x),
-        h: Math.max(minH, Math.round((h + GAP) / stepY)),
-      });
+      const growsX = mode === "resize-e" || mode === "resize-se";
+      const growsY = mode === "resize-s" || mode === "resize-se";
+      const maxCols = Math.min(limits.maxW, COLS - item.x);
+
+      // Pixel size follows the pointer but never leaves the allowed range,
+      // so the box visibly stops at its limits.
+      let w = orig.w;
+      let h = orig.h;
+      const patch = {};
+      if (growsX) {
+        w = clamp(orig.w + dx, spanPx(limits.minW, colWidth), spanPx(maxCols, colWidth));
+        patch.w = clamp(Math.round((w + GAP) / stepX), limits.minW, maxCols);
+      }
+      if (growsY) {
+        const maxPx = Number.isFinite(limits.maxH) ? heightPx(limits.maxH) : Infinity;
+        h = clamp(orig.h + dy, heightPx(limits.minH), maxPx);
+        patch.h = clamp(Math.round((h + GAP) / stepY), limits.minH, limits.maxH);
+      }
+      proposed = applyChange(state.base, item.i, patch);
       px = { left: orig.left, top: orig.top, w, h };
     }
 
     proposedRef.current = proposed;
-    setDrag({ id: item.i, mode: state.mode, proposed, px });
+    setDrag({ id: item.i, mode, proposed, px });
   }, [meta]);
 
   const finish = useCallback(
@@ -115,6 +141,7 @@ const GridLayout = ({
   const begin = (event, item, mode) => {
     if (!editable || (event.pointerType === "mouse" && event.button !== 0)) return;
     event.preventDefault();
+    event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
 
     const orig = rectOf(item, geometry.current.width);
@@ -161,11 +188,11 @@ const GridLayout = ({
     const direction = KEY_DIRECTIONS[event.key];
     if (!direction || !editable) return;
     event.preventDefault();
-    const limits = meta[item.i] ?? {};
+    const limits = limitsOf(meta, item.i);
     const patch = event.shiftKey
       ? {
-          w: clamp(item.w + direction[0], limits.minW ?? 1, COLS - item.x),
-          h: Math.max(limits.minH ?? 1, item.h + direction[1]),
+          w: clamp(item.w + direction[0], limits.minW, Math.min(limits.maxW, COLS - item.x)),
+          h: clamp(item.h + direction[1], limits.minH, limits.maxH),
         }
       : {
           x: clamp(item.x + direction[0], 0, COLS - item.w),
@@ -174,8 +201,10 @@ const GridLayout = ({
     const next = applyChange(layout, item.i, patch);
     onLayoutChange(next);
     const moved = next.find((entry) => entry.i === item.i);
+    const atLimit =
+      event.shiftKey && moved.w === item.w && moved.h === item.h ? " (size limit reached)" : "";
     onAnnounce?.(
-      `${limits.title ?? item.i}: column ${moved.x + 1}, row ${moved.y + 1}, size ${moved.w} by ${moved.h}`
+      `${limits.title}: column ${moved.x + 1}, row ${moved.y + 1}, size ${moved.w} by ${moved.h}${atLimit}`
     );
   };
 
@@ -220,11 +249,14 @@ const GridLayout = ({
         shown.map((item) => {
           const active = drag?.id === item.i;
           const rect = active ? drag.px : rectOf(item, width);
-          const limits = meta[item.i] ?? {};
+          const limits = limitsOf(meta, item.i);
+          const canWidth = limits.minW < Math.min(limits.maxW, COLS);
+          const canHeight = limits.minH < limits.maxH;
+          const resizing = active && drag.mode !== "move";
           return (
             <div
               key={item.i}
-              className="grid-item absolute left-0 top-0"
+              className="grid-item group/tile absolute left-0 top-0"
               data-editable={editable}
               data-active={active}
               style={{
@@ -241,23 +273,64 @@ const GridLayout = ({
                   <div
                     role="group"
                     tabIndex={0}
-                    aria-label={`${limits.title ?? item.i}, column ${item.x + 1}, row ${item.y + 1}, size ${item.w} by ${item.h}. Use arrow keys to move and Shift with arrow keys to resize.`}
+                    aria-label={`${limits.title}, column ${item.x + 1}, row ${item.y + 1}, size ${item.w} by ${item.h}. Use arrow keys to move and Shift with arrow keys to resize.`}
                     className={`absolute inset-0 touch-none rounded-lg ${
                       active && drag.mode === "move" ? "cursor-grabbing" : "cursor-grab"
                     }`}
                     onKeyDown={(event) => onKeyDown(event, item)}
                     {...handlers(item, "move")}
                   />
-                  <div
-                    aria-hidden
-                    title="Resize"
-                    className="absolute bottom-0 right-0 flex size-7 cursor-nwse-resize touch-none items-end justify-end p-1.5 text-fg-3 hover:text-accent"
-                    {...handlers(item, "resize")}
-                  >
-                    <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                      <path d="M11 3 3 11M11 7l-4 4" />
-                    </svg>
-                  </div>
+
+                  {canWidth && (
+                    <div
+                      aria-hidden
+                      title="Drag to change width"
+                      className="absolute bottom-7 right-0 top-7 flex w-4 cursor-ew-resize touch-none items-center justify-end"
+                      {...handlers(item, "resize-e")}
+                    >
+                      <span
+                        className={`mr-0.5 h-10 w-1 rounded-full transition-colors ${
+                          resizing && drag.mode === "resize-e"
+                            ? "bg-accent"
+                            : "bg-fg-3/50 group-hover/tile:bg-accent/70"
+                        }`}
+                      />
+                    </div>
+                  )}
+
+                  {canHeight && (
+                    <div
+                      aria-hidden
+                      title="Drag to change height"
+                      className="absolute bottom-0 left-7 right-7 flex h-4 cursor-ns-resize touch-none items-end justify-center"
+                      {...handlers(item, "resize-s")}
+                    >
+                      <span
+                        className={`mb-0.5 h-1 w-10 rounded-full transition-colors ${
+                          resizing && drag.mode === "resize-s"
+                            ? "bg-accent"
+                            : "bg-fg-3/50 group-hover/tile:bg-accent/70"
+                        }`}
+                      />
+                    </div>
+                  )}
+
+                  {canWidth && canHeight && (
+                    <div
+                      aria-hidden
+                      title="Drag to change width and height"
+                      className={`absolute bottom-0 right-0 flex size-7 cursor-nwse-resize touch-none items-end justify-end p-1.5 transition-colors ${
+                        resizing && drag.mode === "resize-se"
+                          ? "text-accent"
+                          : "text-fg-3 group-hover/tile:text-accent"
+                      }`}
+                      {...handlers(item, "resize-se")}
+                    >
+                      <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M11 3 3 11M11 7l-4 4" />
+                      </svg>
+                    </div>
+                  )}
                 </>
               )}
             </div>

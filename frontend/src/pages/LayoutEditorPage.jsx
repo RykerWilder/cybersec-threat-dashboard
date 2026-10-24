@@ -5,7 +5,7 @@ import { layoutEquals } from "../layout/engine";
 import { useMediaQuery } from "../layout/hooks";
 import { setDirty } from "../layout/navGuard";
 import { defaultLayout, loadLayout, saveLayout } from "../layout/storage";
-import { WIDGETS_BY_ID } from "../layout/widgets";
+import { WIDGETS_BY_ID, resizeAxes } from "../layout/widgets";
 
 const GLYPHS = {
   donut: (
@@ -44,8 +44,21 @@ const Grip = () => (
 );
 
 /** Lightweight stand-in for a widget while arranging (no data, no iframes). */
+const sizeHint = (widget) => {
+  const axes = resizeAxes(widget);
+  const width = axes.width ? `width ${widget.minW}–${widget.maxW}` : null;
+  const height = axes.height ? `height ${widget.minH}–${widget.maxH}` : null;
+  if (width && height) return `Resizable: ${width}, ${height}`;
+  if (height) return `Height only: ${widget.minH}–${widget.maxH} rows`;
+  return "Fixed size";
+};
+
 const Tile = ({ item, active }) => {
   const widget = WIDGETS_BY_ID[item.i];
+  const axes = resizeAxes(widget);
+  const atLimit =
+    (axes.width && (item.w === widget.minW || item.w === widget.maxW)) ||
+    (axes.height && (item.h === widget.minH || item.h === widget.maxH));
   return (
     <div
       className={`flex size-full flex-col overflow-hidden rounded-lg border bg-ink-800 p-4 transition-colors ${
@@ -58,7 +71,12 @@ const Tile = ({ item, active }) => {
           <div className="truncate text-[13px] font-semibold text-fg">{widget.title}</div>
           <div className="truncate text-xs text-fg-3">{widget.description}</div>
         </div>
-        <span className="shrink-0 rounded bg-ink-700 px-1.5 py-0.5 font-mono text-[11px] text-fg-2 tabular">
+        <span
+          className={`shrink-0 rounded px-1.5 py-0.5 font-mono text-[11px] tabular ${
+            active && atLimit ? "bg-warn/15 text-warn" : "bg-ink-700 text-fg-2"
+          }`}
+          title={active && atLimit ? "Size limit reached" : undefined}
+        >
           {item.w} × {item.h}
         </span>
       </div>
@@ -73,6 +91,7 @@ const Tile = ({ item, active }) => {
           {GLYPHS[widget.glyph]}
         </svg>
       </div>
+      <div className="mt-2 truncate text-[11px] text-fg-3">{sizeHint(widget)}</div>
     </div>
   );
 };
@@ -128,8 +147,10 @@ const LayoutEditorPage = () => {
         <div className="max-w-2xl">
           <h1 className="text-[28px] font-semibold leading-9 tracking-tight text-fg">Layout editor</h1>
           <p className="mt-2 text-[15px] leading-6 text-fg-2">
-            Drag a panel to move it and pull its bottom-right corner to resize it. Other panels
-            move out of the way. The layout is stored in this browser once you save it.
+            Drag a panel to move it. Pull its right edge, bottom edge or bottom-right corner to
+            resize it; each panel has a minimum and maximum size, and the vulnerability feed can
+            only change in height. Other panels move out of the way. The layout is stored in this
+            browser once you save it.
           </p>
         </div>
 
