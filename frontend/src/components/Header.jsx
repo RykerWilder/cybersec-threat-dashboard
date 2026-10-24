@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppLink from "./AppLink";
 import { useRoute } from "../layout/hooks";
+import { loadEditorPage } from "../pages/editorPage";
 
 const STATUS_CONFIG = {
   active: { label: "Active", dotColor: "bg-ok", textColor: "text-ok" },
@@ -12,12 +13,12 @@ const STATUS_CONFIG = {
 // Rename the entry here if you prefer another label.
 const LAYOUT_EDITOR_LABEL = "Layout editor";
 
-const Header = () => {
-  const route = useRoute();
+// The clock ticks every second and the health check runs every 10 seconds.
+// Each lives in its own small component so only that piece re-renders.
+const Clock = () => {
   const [currentTime, setCurrentTime] = useState(
     new Date().toTimeString().split(" ")[0]
   );
-  const [status, setStatus] = useState("checking");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,6 +27,19 @@ const Header = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  return (
+    <div className="hidden flex-col items-end leading-none lg:flex">
+      <span className="font-mono text-lg font-medium text-fg tabular" id="clock">
+        {currentTime}
+      </span>
+      <span className="mt-1 text-[11px] text-fg-3">Local time</span>
+    </div>
+  );
+};
+
+const ApiStatus = () => {
+  const [status, setStatus] = useState("checking");
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -36,7 +50,7 @@ const Header = () => {
         } else {
           setStatus("degraded");
         }
-      } catch (err) {
+      } catch {
         setStatus("inactive");
       }
     };
@@ -48,6 +62,27 @@ const Header = () => {
   }, []);
 
   const { label, dotColor, textColor } = STATUS_CONFIG[status];
+
+  return (
+    <div
+      className="flex items-center gap-2 rounded-md border border-ink-600 bg-ink-800 px-3 py-1.5 text-[13px]"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="relative flex size-2">
+        {status === "active" && (
+          <span className={`absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping ${dotColor}`} />
+        )}
+        <span className={`relative inline-flex size-2 rounded-full ${dotColor}`}></span>
+      </span>
+      <span className="hidden text-fg-3 lg:inline">System status</span>
+      <span className={`font-medium ${textColor}`}>{label}</span>
+    </div>
+  );
+};
+
+const Header = () => {
+  const route = useRoute();
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-600 bg-ink-900/85 backdrop-blur-md">
@@ -79,6 +114,8 @@ const Header = () => {
         <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex">
           <AppLink
             href="#/layout"
+            onMouseEnter={loadEditorPage}
+            onFocus={loadEditorPage}
             aria-current={route === "layout" ? "page" : undefined}
             className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
               route === "layout"
@@ -105,27 +142,8 @@ const Header = () => {
         </nav>
 
         <div className="ml-auto flex items-center gap-5">
-          <div
-            className="flex items-center gap-2 rounded-md border border-ink-600 bg-ink-800 px-3 py-1.5 text-[13px]"
-            role="status"
-            aria-live="polite"
-          >
-            <span className="relative flex size-2">
-              {status === "active" && (
-                <span className={`absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping ${dotColor}`} />
-              )}
-              <span className={`relative inline-flex size-2 rounded-full ${dotColor}`}></span>
-            </span>
-            <span className="hidden text-fg-3 lg:inline">System status</span>
-            <span className={`font-medium ${textColor}`}>{label}</span>
-          </div>
-
-          <div className="hidden flex-col items-end leading-none lg:flex">
-            <span className="font-mono text-lg font-medium text-fg tabular" id="clock">
-              {currentTime}
-            </span>
-            <span className="mt-1 text-[11px] text-fg-3">Local time</span>
-          </div>
+          <ApiStatus />
+          <Clock />
         </div>
       </div>
     </header>

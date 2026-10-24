@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import DashboardPage from "./pages/DashboardPage";
-import LayoutEditorPage from "./pages/LayoutEditorPage";
+import { LazyLayoutEditorPage } from "./pages/editorPage";
 import { useRoute } from "./layout/hooks";
 
 function App() {
@@ -32,7 +32,19 @@ function App() {
       <Header />
 
       <main id="main" tabIndex={-1} className="relative focus:outline-none mx-auto w-full max-w-[1560px] px-5 pb-4 pt-10 lg:px-10">
-        {route === "layout" ? <LayoutEditorPage /> : <DashboardPage />}
+        {route === "layout" ? (
+          <Suspense
+            fallback={
+              <div role="status" className="py-24 text-center text-[13px] text-fg-2">
+                Loading layout editor
+              </div>
+            }
+          >
+            <LazyLayoutEditorPage />
+          </Suspense>
+        ) : (
+          <DashboardPage />
+        )}
       </main>
 
       <Footer />

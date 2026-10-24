@@ -182,9 +182,11 @@ const GridLayout = ({
   const shown = drag ? drag.proposed : layout;
   const rows = rowsOf(shown) + (editable ? 3 : 0);
   const colWidth = (width - GAP * (COLS - 1)) / COLS;
+  // Ignore transient widths too small to hold the 12 columns.
+  const ready = colWidth >= 1;
 
   const background =
-    editable && width > 0
+    editable && ready
       ? {
           backgroundImage:
             "radial-gradient(circle, rgb(120 160 220 / 0.28) 1px, transparent 1.5px)",
@@ -202,7 +204,7 @@ const GridLayout = ({
       className="relative"
       style={{ height: pixelHeight(rows), ...background }}
     >
-      {width > 0 && placeholderRect && (
+      {ready && placeholderRect && (
         <div
           aria-hidden
           className="absolute left-0 top-0 rounded-lg border border-dashed border-accent/70 bg-accent/10 transition-transform duration-150 motion-reduce:transition-none"
@@ -214,7 +216,7 @@ const GridLayout = ({
         />
       )}
 
-      {width > 0 &&
+      {ready &&
         shown.map((item) => {
           const active = drag?.id === item.i;
           const rect = active ? drag.px : rectOf(item, width);

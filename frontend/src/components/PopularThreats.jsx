@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import Chart from "chart.js/auto";
+import { Chart, ArcElement, DoughnutController, Tooltip, Legend } from "chart.js";
 import Panel, { PanelState } from "./Panel";
 import { INK, TOOLTIP } from "../theme/chartTheme";
 import { getJSON } from "../lib/api";
+
+Chart.register(ArcElement, DoughnutController, Tooltip, Legend);
 
 const TITLE = "Popular threat categories";
 const DESCRIPTION = "Top categories by popularity score";
@@ -61,10 +63,6 @@ const PopularThreats = () => {
               pointStyle: "rectRounded",
               font: { size: 12 }
             }
-          },
-          title: {
-            display: false,
-            text: TITLE,
           },
           tooltip: {
             ...TOOLTIP,
