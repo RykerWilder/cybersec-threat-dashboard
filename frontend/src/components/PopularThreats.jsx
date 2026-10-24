@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
+import Panel, { PanelState } from "./Panel";
+import { INK, TOOLTIP } from "../theme/chartTheme";
+import { getJSON } from "../lib/api";
+
+const TITLE = "Popular threat categories";
+const DESCRIPTION = "Top categories by popularity score";
 
 const PopularThreats = () => {
   const chartRef = useRef(null);
@@ -14,11 +20,7 @@ const PopularThreats = () => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("/api/popular-threats");
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getJSON("/api/popular-threats");
         setChartData(data);
       } catch (err) {
         console.error("Data fetch error:", err);
@@ -45,24 +47,27 @@ const PopularThreats = () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: "64%",
         plugins: {
           legend: {
             display: true,
             position: "right",
             labels: {
-              color: "#94a3b8",
-              padding: 15,
+              color: INK.fg2,
+              padding: 12,
+              boxWidth: 12,
+              boxHeight: 12,
+              usePointStyle: true,
+              pointStyle: "rectRounded",
               font: { size: 12 }
             }
           },
           title: {
-            display: true,
-            text: "Popular Threat Categories",
-            color: "#94a3b8",
-            font: { size: 20, weight: "bold" },
-            padding: { bottom: 20 }
+            display: false,
+            text: TITLE,
           },
           tooltip: {
+            ...TOOLTIP,
             callbacks: {
               label: function(context) {
                 let label = context.label || "";
@@ -86,31 +91,34 @@ const PopularThreats = () => {
     };
   }, [chartData, loading]);
 
+  let body;
   if (loading) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 flex items-center justify-center">
-        <div className="text-slate-300">Loading VirusTotal data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
-        <div className="text-red-400 text-center">
-          <div className="font-semibold mb-2">Error Loading Data</div>
-          <div className="text-sm">{error}</div>
+    body = <PanelState kind="loading" title="Loading VirusTotal data" />;
+  } else if (error) {
+    body = <PanelState kind="error" title="Unable to load threat categories" detail={error} />;
+  } else {
+    body = (
+      <div className="absolute inset-0 p-5">
+        <div className="relative size-full">
+          <canvas ref={chartRef} aria-label={TITLE} role="img"></canvas>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="border border-stone-500 rounded-lg p-4 bg-slate-700">
-      <div className="h-96">
-        <canvas ref={chartRef}></canvas>
-      </div>
-    </div>
+    <Panel
+      title={TITLE}
+      description={DESCRIPTION}
+      meta={<span className="text-xs text-fg-3">Source: VirusTotal</span>}
+      footer={
+        <p className="px-5 py-3 text-xs leading-5 text-fg-2">
+          Segments run from the most popular category (lightest) to the least popular (darkest).
+        </p>
+      }
+    >
+      {body}
+    </Panel>
   );
 };
 

@@ -52,10 +52,10 @@ def get_severity(cvss_score: float) -> str:
 
 def get_severity_color(severity: str) -> str:
     colors = {
-        "CRITICAL": "#dc3545",
-        "HIGH": "#fd7e14",
-        "MEDIUM": "#ffc107",
-        "LOW": "#28a745",
+        "CRITICAL": "#e5484d",
+        "HIGH": "#ec835a",
+        "MEDIUM": "#fab219",
+        "LOW": "#2fbf71",
     }
     return colors.get(severity, "#94a3b8")
 
@@ -178,9 +178,10 @@ async def get_popular_threats() -> Dict[str, Any]:
             n = len(top_categories)
             data_values = [95 - (i * 10) for i in range(n)]
 
+            # Ordered blue ramp (rank 1 = lightest), matches the dashboard theme
             background_colors = [
-                "#c084fc", "#a855f7", "#9333ea", "#7c3aed",
-                "#6d28d9", "#5b21b6", "#4c1d95", "#3730a3"
+                "#c2eaff", "#9fd5ff", "#7ac0fa", "#52aaef",
+                "#2b95e0", "#2d7fbd", "#2c6b9b", "#2a567a"
             ][:n]
 
             chart_data = {
@@ -189,7 +190,7 @@ async def get_popular_threats() -> Dict[str, Any]:
                     "label": "Threat Popularity",
                     "data": data_values,
                     "backgroundColor": background_colors,
-                    "borderColor": "#1e293b",
+                    "borderColor": "#0f1a2b",
                     "borderWidth": 2,
                 }]
             }

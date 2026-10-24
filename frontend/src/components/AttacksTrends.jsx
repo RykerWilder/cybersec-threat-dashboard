@@ -11,6 +11,9 @@ import {
   Legend,
   Filler,
 } from "chart.js";
+import Panel, { PanelState } from "./Panel";
+import { AXIS_LINE, GRID, TICKS, TOOLTIP } from "../theme/chartTheme";
+import { getJSON } from "../lib/api";
 
 ChartJS.register(
   LineElement,
@@ -28,20 +31,20 @@ const METRICS = [
   {
     key: "records",
     label: "Number of attacks",
-    color: "#3b82f6",
-    background: "rgba(59, 130, 246, 0.15)",
+    color: "#3987e5",
+    background: "rgba(57, 135, 229, 0.14)",
   },
   {
     key: "targets",
     label: "Number of targets",
-    color: "#ef4444",
-    background: "rgba(239, 68, 68, 0.15)",
+    color: "#d95926",
+    background: "rgba(217, 89, 38, 0.14)",
   },
   {
     key: "sources",
     label: "Number of attackers",
-    color: "#22c55e",
-    background: "rgba(34, 197, 94, 0.15)",
+    color: "#199e70",
+    background: "rgba(25, 158, 112, 0.14)",
   },
 ];
 
@@ -66,8 +69,11 @@ const SingleMetricChart = ({ metric, labels, values }) => {
             borderColor: metric.color,
             backgroundColor: metric.background,
             borderWidth: 2,
-            pointRadius: 2,
-            pointHoverRadius: 4,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: metric.color,
+            pointHoverBorderColor: "#0f1a2b",
+            pointHoverBorderWidth: 2,
             tension: 0.35,
             fill: true,
           },
@@ -85,17 +91,11 @@ const SingleMetricChart = ({ metric, labels, values }) => {
             display: false,
           },
           title: {
-            display: true,
-            color: "#e2e8f0",
+            display: false,
             text: metric.label,
-            align: "start",
-            font: {
-              size: 15,
-              weight: "bold",
-            },
-            padding: { bottom: 10 },
           },
           tooltip: {
+            ...TOOLTIP,
             mode: "index",
             intersect: false,
           },
@@ -103,26 +103,22 @@ const SingleMetricChart = ({ metric, labels, values }) => {
         scales: {
           x: {
             ticks: {
+              ...TICKS,
               maxRotation: 90,
               minRotation: 90,
-              color: "#90a1b8",
               autoSkip: true,
               maxTicksLimit: 15,
             },
-            grid: {
-              color: "rgba(148, 163, 184, 0.1)",
-            },
+            grid: { display: false },
+            border: AXIS_LINE,
           },
           y: {
             type: "linear",
             position: "left",
             min: 0,
-            ticks: {
-              color: "#90a1b8",
-            },
-            grid: {
-              color: "rgba(148, 163, 184, 0.1)",
-            },
+            ticks: TICKS,
+            grid: GRID,
+            border: { display: false },
           },
         },
       },
@@ -136,13 +132,18 @@ const SingleMetricChart = ({ metric, labels, values }) => {
   }, [metric, labels, values]);
 
   return (
-    <div className="h-64">
-      <canvas ref={chartRef}></canvas>
+    <div className="relative size-full">
+      <canvas ref={chartRef} role="img" aria-label={metric.label}></canvas>
     </div>
   );
 };
 
-const AttacksTrend = () => {
+/**
+ * One attack-trend chart. The three metrics (records, targets, sources) are
+ * separate dashboard widgets that share a single /api/attacks-trend request.
+ */
+const AttacksTrend = ({ metricKey }) => {
+  const metric = METRICS.find((item) => item.key === metricKey) ?? METRICS[0];
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -153,12 +154,7 @@ const AttacksTrend = () => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("/api/attacks-trend");
-        if (!response.ok) {
-          throw new Error(`HTTP error status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await getJSON("/api/attacks-trend");
 
         const labels = data.map((item) => item.date);
         const values = {
@@ -179,45 +175,51 @@ const AttacksTrend = () => {
     fetchData();
   }, []);
 
+  let body;
+  let latest;
   if (loading) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 flex items-center justify-center h-96">
-        <div className="text-slate-300">Loading data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-96 flex items-center justify-center">
-        <div className="text-red-400 text-center">
-          <div className="font-semibold mb-2">Error Loading Data</div>
-          <div className="text-sm">{error}</div>
-        </div>
+    body = <PanelState kind="loading" title="Loading attack trend data" />;
+  } else if (error) {
+    body = <PanelState kind="error" title="Unable to load attack trend" detail={error} />;
+  } else {
+    const series = chartData.values[metric.key];
+    latest = series[series.length - 1];
+    body = (
+      <div className="absolute inset-0 p-5">
+        <SingleMetricChart metric={metric} labels={chartData.labels} values={series} />
       </div>
     );
   }
 
   return (
-    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
-      <div className="text-slate-300 font-bold text-xl mb-4">
-        Attacks Trend - Last 30 days
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {METRICS.map((metric, index) => (
-          <div
-            key={metric.key}
-            className={index === 0 ? "lg:col-span-2" : ""}
-          >
-            <SingleMetricChart
-              metric={metric}
-              labels={chartData.labels}
-              values={chartData.values[metric.key]}
-            />
+    <Panel
+      title={
+        <span className="flex items-center gap-2">
+          <span
+            className="h-0.5 w-4 rounded-full"
+            style={{ backgroundColor: metric.color }}
+            aria-hidden
+          ></span>
+          {metric.label}
+        </span>
+      }
+      description="Daily count over the last 30 days"
+      meta={
+        latest !== undefined ? (
+          <div className="text-right leading-none">
+            <span className="font-mono text-base font-medium text-fg tabular">
+              {latest.toLocaleString()}
+            </span>
+            <span className="ml-1.5 text-xs text-fg-3">latest day</span>
           </div>
-        ))}
-      </div>
-    </div>
+        ) : null
+      }
+      footer={
+        <p className="px-5 py-2.5 text-xs text-fg-3">Source: ISC SANS Internet Storm Center</p>
+      }
+    >
+      {body}
+    </Panel>
   );
 };
 

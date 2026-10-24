@@ -1,6 +1,26 @@
 import React, { useEffect, useState } from "react";
+import Panel, { PanelState } from "./Panel";
+import { getJSON } from "../lib/api";
 
-const TopVulnerabilitiesList = () => {
+const TITLE = "Vulnerability feed";
+const DESCRIPTION = "CVEs published in the last 7 days";
+
+const ExternalIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover/link:opacity-100 group-focus-visible/link:opacity-100"
+    aria-hidden
+  >
+    <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+  </svg>
+);
+
+const TopVulnerabilitiesList = ({ className = "" }) => {
   const [vulnerabilities, setVulnerabilities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,11 +31,7 @@ const TopVulnerabilitiesList = () => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("/api/nvd-severity");
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getJSON("/api/nvd-severity");
         setVulnerabilities(data);
       } catch (err) {
         console.error("Data fetch error:", err);
@@ -28,72 +44,85 @@ const TopVulnerabilitiesList = () => {
     fetchData();
   }, []);
 
+  let body;
   if (loading) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 flex items-center justify-center">
-        <div className="text-slate-300">
-          Loading NVD Vulnerabilities data...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700">
-        <div className="text-red-400 text-center">
-          <div className="font-semibold mb-2">Error Loading Data</div>
-          <div className="text-sm">{error}</div>
-        </div>
-      </div>
+    body = <PanelState kind="loading" title="Loading NVD vulnerabilities" />;
+  } else if (error) {
+    body = <PanelState kind="error" title="Unable to load vulnerabilities" detail={error} />;
+  } else {
+    // The list is absolutely positioned inside a flexible box so that it
+    // scrolls instead of stretching the row it shares with the map.
+    body = (
+      <>
+        <ul className="scroll-thin absolute inset-0 divide-y divide-ink-600 overflow-y-auto">
+          {vulnerabilities.length === 0 ? (
+            <li className="px-5 py-8 text-center text-fg-3">
+              No vulnerabilities found in the last 7 days
+            </li>
+          ) : (
+            vulnerabilities.map((vulnerability) => {
+              const color = vulnerability.color || "#94a3b8";
+              const severity = vulnerability.severity || "Unknown";
+              return (
+                <li
+                  key={vulnerability.cveId}
+                  className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-ink-700/60"
+                >
+                  <span
+                    className="h-9 w-1 shrink-0 rounded-full"
+                    style={{ backgroundColor: color }}
+                    aria-hidden
+                  ></span>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cveId}`}
+                      className="group/link inline-flex max-w-full items-center gap-1.5 font-mono text-[13px] font-medium text-accent hover:text-accent-strong hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="truncate">{vulnerability.cveId}</span>
+                      <ExternalIcon />
+                    </a>
+                    <div className="mt-0.5 flex items-center gap-2 text-xs text-fg-3">
+                      <span
+                        className="rounded border px-1.5 py-px font-medium text-fg-2"
+                        style={{ borderColor: `${color}66`, backgroundColor: `${color}1f` }}
+                      >
+                        {severity}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right leading-none">
+                    <div className="font-mono text-lg font-medium text-fg tabular">
+                      {vulnerability.cvssScore?.toFixed(1) || "N/A"}
+                    </div>
+                    <div className="mt-1 text-[11px] text-fg-3">CVSS</div>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </>
     );
   }
 
   return (
-    <div className="break-inside-avoid border border-stone-500 rounded-lg p-4 bg-slate-700 h-[500px] flex flex-col w-[35%]">
-      <h3 className="text-xl text-slate-400 font-semibold text-center mb-4">
-        NVD Latest Vulnerabilities
-      </h3>
-      <div className="space-y-3 flex-1 overflow-y-auto">
-        {vulnerabilities.length === 0 ? (
-          <div className="text-slate-400 text-center py-4">
-            No vulnerabilities found in the last 7 days
-          </div>
-        ) : (
-          vulnerabilities.map((vulnerability, index) => (
-            <div
-              key={vulnerability.cveId}
-              className="p-3 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-750 transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
-                  <div 
-                    className="w-3 h-3 rounded-full mt-1.5" 
-                    style={{ backgroundColor: vulnerability.color || '#94a3b8' }}
-                  ></div>
-                  <div className="flex-1">
-                    <a
-                      href={`https://nvd.nist.gov/vuln/detail/${vulnerability.cveId}`}
-                      className="underline text-sm text-slate-200 font-semibold"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {vulnerability.cveId}
-                    </a>
-                    <div className="text-xs text-slate-400 mt-2 line-clamp-3">
-                      CVSS {vulnerability.cvssScore?.toFixed(1) || 'N/A'} - {vulnerability.severity || 'Unknown'}
-                    </div>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-slate-500">
-                      <span>Severity: {vulnerability.severity || 'Unknown'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+    <Panel
+      title={TITLE}
+      description={DESCRIPTION}
+      meta={
+        !loading && !error ? (
+          <span className="rounded bg-ink-700 px-2 py-0.5 font-mono text-xs text-fg-2">
+            {vulnerabilities.length}
+          </span>
+        ) : null
+      }
+      className={className}
+      bodyClassName="overflow-hidden rounded-b-lg"
+    >
+      {body}
+    </Panel>
   );
 };
 

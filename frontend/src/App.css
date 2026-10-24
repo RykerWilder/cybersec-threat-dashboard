@@ -1,1 +1,120 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens
+   Surfaces step from the page plane (ink-950) up to raised elements
+   (ink-700). Hairlines use ink-600/500. A single accent (azure) is used
+   for interactive elements; severity and status use their own fixed
+   colours and never double as accent.
+------------------------------------------------------------------- */
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-ink-950: #070d18;
+  --color-ink-900: #0b1423;
+  --color-ink-800: #0f1a2b;
+  --color-ink-700: #15233a;
+  --color-ink-600: #1d2f4a;
+  --color-ink-500: #2a4063;
+
+  --color-fg: #e8eef8;
+  --color-fg-2: #a9b7cc;
+  --color-fg-3: #7b8fac;
+
+  --color-accent: #5aa9ff;
+  --color-accent-strong: #8cc4ff;
+  --color-accent-deep: #1d4f8f;
+
+  --color-ok: #2fbf71;
+  --color-warn: #fab219;
+  --color-crit: #e5484d;
+
+  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -16px rgb(0 0 0 / 0.6);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgb(90 169 255 / 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  /* Faint engineering grid that fades out below the page header. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(120 160 220 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(120 160 220 / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 30%, transparent 100%);
+  }
+
+  /* Slim scrollbars that match the panels. */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-500) transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--color-ink-500);
+    border-radius: 8px;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Smooth re-flow of panels while editing the layout. */
+.grid-item[data-editable="true"] {
+  transition: transform 180ms ease, width 180ms ease, height 180ms ease;
+}
+
+.grid-item[data-active="true"] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-item[data-editable="true"] {
+    transition: none;
+  }
+}
